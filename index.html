@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<title>Château by Train — Riviera base, château business</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sea:#16607e; --sea-deep:#0e4257;
+    --clay:#b8552e; --clay-deep:#8a3d1d;
+    --gold:#c39438;
+    --cream:#f6efe1; --paper:#fbf7ee;
+    --ink:#2b2722; --muted:#6c6358;
+    --line:rgba(43,39,34,.14);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;}
+  body{font-family:"Hanken Grotesk",system-ui,sans-serif;color:var(--ink);background:var(--cream);-webkit-font-smoothing:antialiased;}
+  #app{position:fixed;inset:0;display:flex;flex-direction:column;}
+  header{background:linear-gradient(180deg,var(--paper),#f1e7d4);border-bottom:1px solid var(--line);padding:12px 16px 0;}
+  .kicker{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--clay-deep);font-weight:700;margin:0 0 2px;}
+  h1{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:clamp(18px,4.8vw,24px);line-height:1.05;margin:0;letter-spacing:-.01em;}
+  h1 em{font-style:italic;color:var(--clay);}
+  nav{display:flex;gap:4px;margin-top:11px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  nav button{flex:0 0 auto;border:none;background:transparent;font-family:"Hanken Grotesk",sans-serif;font-weight:700;font-size:13px;color:var(--muted);padding:9px 13px;border-radius:9px 9px 0 0;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+  nav button.active{color:var(--clay-deep);border-bottom-color:var(--clay);background:var(--cream);}
+  main{flex:1;position:relative;overflow:hidden;}
+  .tab{position:absolute;inset:0;overflow-y:auto;display:none;}
+  .tab.active{display:block;}
+  .tab.pad{padding:16px 16px 40px;}
+  #map{position:absolute;inset:0;background:#aadaff;}
+  .maplegend{position:absolute;left:12px;bottom:12px;z-index:600;background:rgba(251,247,238,.95);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:11px;line-height:1.5;box-shadow:0 4px 14px rgba(0,0,0,.14);max-width:60vw;}
+  .maplegend b{font-family:"Fraunces",serif;font-size:12px;}
+  .grad{display:block;width:140px;height:9px;border-radius:5px;margin:4px 0 1px;background:linear-gradient(90deg,hsl(130,62%,42%),hsl(70,60%,44%),hsl(33,68%,48%),hsl(2,62%,47%));}
+  .gradlab{font-size:9px;color:var(--muted);font-weight:700;letter-spacing:.03em;}
+  .gradlab.r{float:right;}
+  .lgrow{margin-top:4px;clear:both;}
+  .dotg{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--gold);border:2px solid #fff;vertical-align:middle;margin-right:6px;}
+  .xferkey{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:9px;background:#2b2722;color:#fff;font-size:10px;font-weight:700;border:1.5px solid #fff;margin-right:6px;vertical-align:middle;padding:0 3px;}
+  .pinwrap{position:relative;width:28px;height:28px;}
+  .pin{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50% 50% 50% 6px;transform:rotate(45deg);border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.4);font-weight:700;font-size:12px;color:#fff;}
+  .pin span{transform:rotate(-45deg);}
+  .pin.club{background:var(--gold);width:34px;height:34px;font-size:15px;margin:-3px;}
+  .xfer{position:absolute;top:-7px;right:-9px;min-width:16px;height:16px;border-radius:9px;background:#2b2722;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;padding:0 3px;z-index:5;}
+  .leaflet-popup-content-wrapper{border-radius:13px;overflow:hidden;padding:0;border:1px solid var(--line);box-shadow:0 14px 34px rgba(20,15,8,.26);}
+  .leaflet-popup-content{margin:0;width:228px!important;}
+  .pop{padding:12px 13px;background:var(--paper);}
+  .pop .t{font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;font-weight:700;color:var(--clay-deep);}
+  .pop h3{font-family:"Fraunces",serif;font-weight:600;font-size:15px;margin:3px 0 7px;}
+  .pop .row{font-size:12px;margin:3px 0;display:flex;gap:7px;}
+  .pop .row b{color:var(--ink);min-width:60px;display:inline-block;font-weight:700;}
+  .pop.club .t{color:#9a7320;}
+  .lede{font-size:13.5px;color:var(--muted);line-height:1.5;margin:2px 0 16px;max-width:70ch;}
+  .lede b{color:var(--ink);}
+  h2{font-family:"Fraunces",serif;font-weight:600;font-size:18px;letter-spacing:-.01em;margin:0 0 4px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:14px 15px;margin-bottom:12px;box-shadow:0 2px 8px rgba(20,15,8,.04);}
+  .card .h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+  .card .h h3{font-family:"Fraunces",serif;font-weight:600;font-size:16.5px;margin:0;}
+  .badge{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 7px;border-radius:20px;}
+  .badge.best{background:#e7efe0;color:#3f7d52;}
+  .badge.ok{background:#f6ead2;color:#c98a2b;}
+  .badge.warn{background:#f6e1d8;color:#b5462f;}
+  .card p{font-size:12.7px;line-height:1.45;color:#4a443c;margin:5px 0 0;}
+  .three{display:grid;grid-template-columns:1fr;gap:12px;}
+  .path{border-radius:13px;padding:15px;color:var(--paper);}
+  .path.a{background:linear-gradient(160deg,#16607e,#0e4257);}
+  .path.b{background:linear-gradient(160deg,#b8552e,#8a3d1d);}
+  .path.c{background:linear-gradient(160deg,#5f6f33,#3f4d20);}
+  .path .tag{font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;opacity:.85;}
+  .path h3{font-family:"Fraunces",serif;font-weight:600;font-size:18px;margin:4px 0 7px;}
+  .path p{font-size:12.7px;line-height:1.5;margin:0;opacity:.95;}
+  .path .rec{display:inline-block;margin-top:9px;font-size:10.5px;font-weight:700;letter-spacing:.05em;background:rgba(255,255,255,.18);padding:4px 9px;border-radius:20px;}
+  table{width:100%;border-collapse:collapse;font-size:12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  th,td{padding:8px 9px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{background:#efe6d4;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--clay-deep);}
+  .rk{font-family:"Fraunces",serif;font-weight:600;}
+  .foot{font-size:10.5px;color:var(--muted);line-height:1.4;margin-top:14px;border-top:1px solid var(--line);padding-top:10px;}
+  .calc{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:14px;margin-bottom:12px;}
+  .calc .field{display:flex;flex-direction:column;gap:5px;}
+  .calc .field.full{grid-column:1/-1;}
+  .calc label{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:flex;justify-content:space-between;}
+  .calc label .v{color:var(--clay-deep);}
+  .calc input[type=number]{font-family:inherit;font-size:16px;font-weight:700;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);width:100%;}
+  .calc input[type=range]{width:100%;accent-color:var(--clay);margin:3px 0;}
+  .out{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px;}
+  .outcard{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:11px 12px;}
+  .outcard small{display:block;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:3px;}
+  .outcard b{font-family:"Fraunces",serif;font-size:19px;font-weight:600;}
+  .outcard.hero{grid-column:1/-1;background:linear-gradient(160deg,#5f6f33,#3f4d20);border:none;color:var(--paper);}
+  .outcard.hero small{color:rgba(255,255,255,.82);}
+  .cand{width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.45);}
+  .pop.cand .t{color:#9a7320;}
+  .pop a.btn{display:block;text-align:center;text-decoration:none;background:var(--clay);color:var(--paper);font-weight:700;font-size:12.5px;letter-spacing:.03em;padding:8px 10px;border-radius:9px;margin-top:9px;}
+  .pop a.btn:hover{filter:brightness(1.06);}
+  .pop .station{margin-top:7px;font-size:11.5px;color:var(--sea-deep);font-weight:700;text-align:center;}
+  .pop .url{margin-top:7px;padding-top:6px;border-top:1px solid var(--line);font-size:9.5px;line-height:1.35;color:var(--muted);word-break:break-all;user-select:all;-webkit-user-select:all;}
+  .candkey{display:inline-block;width:12px;height:12px;border-radius:50%;background:#cdb56a;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.22);vertical-align:middle;margin-right:6px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <p class="kicker">Retirement plan · rent on the Riviera, own the château</p>
+    <h1>Château <em>by train</em> — the factors, side by side</h1>
+    <nav id="nav">
+      <button class="active" data-tab="map">🚆 Map &amp; routes</button>
+      <button data-tab="regions">Regions</button>
+      <button data-tab="decision">The decision</button>
+      <button data-tab="rules">The rules</button>
+      <button data-tab="finance">💶 Buy &amp; finance</button>
+    </nav>
+  </header>
+  <main>
+    <section class="tab active" id="tab-map">
+      <div id="map"></div>
+      <div class="maplegend">
+        <b>Time from Monaco</b>
+        <span class="grad"></span>
+        <span class="gradlab">~2h · near</span><span class="gradlab r">~10h+ · far</span>
+        <div class="lgrow" style="margin-top:6px;font-size:10px;color:var(--muted)">Every rail line &amp; pin coloured by time</div>
+        <div class="lgrow"><span class="dotg"></span>Your rental base</div>
+        <div class="lgrow"><span class="xferkey">1</span>Train changes from Monaco</div>
+        <div class="lgrow"><span class="candkey"></span>Château candidate (tap for link)</div>
+      </div>
+    </section>
+
+    <section class="tab pad" id="tab-regions">
+      <h2>Where the cheap châteaux are — and how reachable</h2>
+      <p class="lede">The discount lives where there's rural depopulation and distance, so none are near the coast. Ranked by <b>train-reachability from Nice</b>, not by charm. Verified June 2026: Nice–Bordeaux ≈ 8h35, Nice–Paris ≈ 6h by TGV.</p>
+      <table>
+        <tr><th>Region (rep. area)</th><th>Château price</th><th>Train from Nice</th><th>Changes</th><th>Verdict</th></tr>
+        <tr><td><span class="rk">1.</span> <b>Occitanie</b><br>Gers / Aude, nr Toulouse</td><td>€300–850K</td><td><b>~4–6h</b><br>south line, no Paris</td><td>0–1</td><td>★ Best rail + sun</td></tr>
+        <tr><td><span class="rk">2.</span> <b>Loire Valley</b><br>Touraine / Anjou / Mayenne</td><td>€430–795K</td><td>~7–8h<br>via Paris (fast onward)</td><td>1</td><td>Best tourism if 1 change is OK</td></tr>
+        <tr><td><span class="rk">3.</span> <b>Dordogne</b><br>Périgord / Bergerac</td><td>€178–780K</td><td>~9–11h<br>via Bordeaux (or fly Bergerac)</td><td>2</td><td>Best B&amp;B, worst rail</td></tr>
+        <tr><td><span class="rk">4.</span> <b>Hauts-de-France</b><br>Laon / Aisne</td><td>€178–718K</td><td>~7.5h<br>via Paris</td><td>1</td><td>Cheapest grandeur, thin demand, grey</td></tr>
+        <tr><td><span class="rk">5.</span> <b>Brittany</b><br>Morbihan</td><td>€67–402K</td><td>~8–9h<br>via Paris</td><td>1</td><td>Cheapest, but far &amp; wet</td></tr>
+        <tr><td><span class="rk">6.</span> <b>Normandy</b><br>Manche / Avranches</td><td>from ~€180K</td><td>~8h<br>via Paris</td><td>2</td><td>Charming, long haul</td></tr>
+      </table>
+      <p class="foot">Price bands are from the listings you shared (cheappropertyfrance / housstyler) plus regional norms; treat as indicative, not quotes. The honest tension: the strongest B&amp;B market (Dordogne) is the hardest to reach by rail, while the easiest rail (Occitanie) is also sunny and cheaper than the Riviera.</p>
+    </section>
+
+    <section class="tab pad" id="tab-decision">
+      <h2>One fork, three honest shapes</h2>
+      <p class="lede">A château near the Monte-Carlo Country Club doesn't exist at these prices — Alpes-Maritimes châteaux start near <b>€1.55M</b> and climb into the millions. So the club and the château pull apart. Pick which constraint flexes.</p>
+      <div class="three">
+        <div class="path a"><div class="tag">Path A</div><h3>Keep the club, drop the château</h3><p>Stay in the Riviera backcountry (Sospel, Gorbio). Stone houses, not turrets; a ≤5-room B&amp;B at most; €450–650K buys charm, not grandeur. The tennis-and-coast life is the prize.</p></div>
+        <div class="path b"><div class="tag">Path B</div><h3>Keep the château, leave the Riviera</h3><p>€430–795K buys a real multi-building château where the B&amp;B/retreat pencils — and where your AI-maintenance thesis and agritourism ideas fit best. But you give up MCCC and the Côte d'Azur.</p></div>
+        <div class="path c"><div class="tag">Path C</div><h3>Decouple — rent the base, own the château</h3><p>Your own "rent the apartment, buy the farm" structure, with the leash off. Rent small near the club for the tennis season; buy the château in a rail-reachable region. The château is the hard want; the radius was the soft one.<span class="rec">★ Recommended — and the reason to map the trains</span></p></div>
+      </div>
+      <p class="foot">Budget reality on ~$1M: the purchase price is the <b>smallest</b> cost. A château almost always triggers the public-establishment (ERP) regime, the tourism-DPE rules, and a legendary maintenance load — and pulling €500K from a traditional TSP is a taxable event. Underwrite the carry at today's costs; don't pre-spend the robots.</p>
+    </section>
+
+    <section class="tab pad" id="tab-rules">
+      <h2>The operating rules that decide what's buildable</h2>
+      <p class="lede">Lead with these before any price — they cap what a château can legally become.</p>
+      <div class="card"><div class="h"><h3>The 5-room line → ERP</h3><span class="badge warn">Likely triggers</span></div><p>A <b>chambres d'hôtes</b> is capped at 5 rooms and 15 guests with the owner living on-site (declared at the mairie) — the light regime. A château has more rooms than that almost by definition, so you become an <b>ERP</b> (public-receiving establishment): fire safety, disabled access, capacity rules, inspections. Not fatal, but it's the biggest budget driver. Buying a place with ERP-compliant tourist use already in place is worth a premium.</p></div>
+      <div class="card"><div class="h"><h3>DPE / Loi Le Meur</h3><span class="badge ok">Applies — with an exemption</span></div><p>Your "not a permanent rental" hunch is now outdated: the Nov 2024 Le Meur law aligns tourist lets to the energy ladder — at least <b>A–E</b> today in change-of-use communes, and <b>A–D for all by 2034</b> (€5,000 fine). <b>But</b> properties run under <b>4 months a year</b>, or independent units under <b>50 m²</b>, are exempt. A periodic-retreat model can sidestep the retrofit entirely.</p></div>
+      <div class="card"><div class="h"><h3>SAFER pre-emption</h3><span class="badge ok">Usually mild here</span></div><p>On rural land sales the rural-land agency can step in to keep land farming. Château <b>parkland</b> is often park/garden zoning rather than agricultural — lower risk than a working farm — but verify the parcels' PLU zoning. Selling/using for agro-tourism is a SAFER-friendly purpose.</p></div>
+      <div class="card"><div class="h"><h3>Change-of-use &amp; registration</h3><span class="badge best">Rural = easier</span></div><p>National registration of every tourist let becomes mandatory <b>20 May 2026</b>, all communes. Change-of-use authorization mainly bites in tense/coastal zones — the cheap-château rural communes usually don't require it, which is an advantage over the Riviera.</p></div>
+      <div class="card"><div class="h"><h3>Tax footing</h3><span class="badge best">Treaty in your favour</span></div><p>Unlike Monaco, France has a US tax treaty that prevents double taxation and can assign a US government pension (TSP) to the US side — confirm with a cross-border CPA. Operate via the chambres d'hôtes or meublé/LMNP regime; budget ERP-compliance capex separately.</p></div>
+      <p class="foot">Rules verified via French sources June 2026 (Loi Le Meur, loi Climat &amp; Résilience, Code du tourisme). Confirm the specifics for the exact commune and property before committing — local PLUs and the April 2026 reform talk can shift details.</p>
+    </section>
+
+    <section class="tab pad" id="tab-finance">
+      <h2>French mortgage calculator</h2>
+      <p class="lede">Sliders default to a <b>US non-resident retiree</b> profile (~30% deposit, ~4% fixed, shorter term, higher insurance). Live estimate — not a lending offer.</p>
+      <div class="calc">
+        <div class="field full"><label>Property price (€)</label><input type="number" id="c-price" value="500000" step="10000" min="50000"></div>
+        <div class="field"><label>Deposit <span class="v" id="v-dep">30%</span></label><input type="range" id="c-dep" min="10" max="60" step="5" value="30"></div>
+        <div class="field"><label>Rate (fixed) <span class="v" id="v-rate">4.00%</span></label><input type="range" id="c-rate" min="2" max="6" step="0.05" value="4"></div>
+        <div class="field"><label>Term <span class="v" id="v-term">20 yr</span></label><input type="range" id="c-term" min="5" max="25" step="1" value="20"></div>
+        <div class="field"><label>Insurance / yr <span class="v" id="v-ins">0.50%</span></label><input type="range" id="c-ins" min="0.1" max="1.2" step="0.05" value="0.5"></div>
+      </div>
+      <div class="out">
+        <div class="outcard hero"><small>Monthly payment (total)</small><b id="o-tot">—</b></div>
+        <div class="outcard"><small>Loan amount</small><b id="o-loan">—</b></div>
+        <div class="outcard"><small>Cash needed up front*</small><b id="o-up">—</b></div>
+        <div class="outcard"><small>Of which: principal + interest</small><b id="o-pi">—</b></div>
+        <div class="outcard"><small>Of which: insurance</small><b id="o-ins">—</b></div>
+        <div class="outcard"><small>Total interest over term</small><b id="o-int">—</b></div>
+      </div>
+      <p class="foot">*Deposit + ~7.5% notaire fees + ~1% broker fee. France specializes in long fixed-rate loans; non-resident rates early 2026 run ~3.5–4.25%. Insurance (assurance emprunteur) is mandatory and rises sharply with age.</p>
+
+      <h2 style="margin-top:18px">Rules for foreign buyers</h2>
+      <p class="lede">You can absolutely buy — there's no restriction on foreigners owning French property. The friction is all in the financing, and two of these hit you specifically.</p>
+      <div class="card"><div class="h"><h3>US citizens &amp; FATCA</h3><span class="badge warn">Hits you</span></div><p>Mortgages are doable, but FATCA reporting means only <b>certain banks</b> lend to US persons — French institutions must report US-person accounts, which deters some lenders. The fix is a broker who knows the FATCA-friendly banks; don't apply scattershot.</p></div>
+      <div class="card"><div class="h"><h3>Age &amp; insurance</h3><span class="badge warn">Hits you</span></div><p>Retirees are eligible, but the loan typically must be <b>repaid by ~75–80</b>, and the mandatory mortgage life insurance (assurance emprunteur) gets expensive or restricted with age and health — usually the real limiter. It tends to shorten your term and push you toward a bigger deposit or cash.</p></div>
+      <div class="card"><div class="h"><h3>Deposit &amp; LTV</h3><span class="badge ok">Plan for 30–40%</span></div><p>Non-residents generally put down 20–30%; US/non-EU buyers often <b>30–40%</b>, with a typical minimum loan around €150K. Some banks accept securities as collateral to reduce the cash, or ask you to park 12–24 months of payments in a French account as a guarantee.</p></div>
+      <div class="card"><div class="h"><h3>Affordability test</h3><span class="badge ok">~35% cap</span></div><p>Total debt payments capped near <b>33–35% of income</b>, including the new loan. Pension and investment income count, but USD income may be discounted 10–30% for currency risk. Expect to show 2–3 years of US tax returns (certified-translated).</p></div>
+      <div class="card"><div class="h"><h3>Process &amp; costs</h3><span class="badge ok">Budget the extras</span></div><p>You'll need a French bank account and a fiscal number; notaire fees run ~7–8% on older property, broker ~1%, bank fee €2–5K, and early repayment can cost ~3% / 6 months' interest. Ownership does <b>not</b> grant residency — the visa is a separate track.</p></div>
+      <div class="card"><div class="h"><h3>Cash vs. borrow</h3><span class="badge best">A real tradeoff</span></div><p>A mortgage can be tax-smart: interest is deductible against rental income and the debt reduces your IFI wealth-tax base. But for a US-citizen retiree the FATCA + age-insurance friction is real, so paying cash is simpler — at the cost of a taxable TSP withdrawal and tying up the nest egg. Run both in the calculator above.</p></div>
+      <p class="foot">Non-resident lending rules verified via French/expat mortgage sources, early 2026. Figures move with the ECB and by bank; a specialist cross-border broker and CPA are worth their fee here.</p>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const nav=document.getElementById('nav');
+let mapInit=false, map;
+nav.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));
+  const id=b.dataset.tab;
+  document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('active',s.id==='tab-'+id));
+  if(id==='map'){ if(!mapInit){buildMap();mapInit=true;} setTimeout(()=>map.invalidateSize(),60); }
+});
+
+/* city coordinates [lat,lng] */
+const C={
+  nice:[43.70,7.27],club:[43.752,7.421],ventimiglia:[43.79,7.61],
+  toulon:[43.12,5.93],cannes:[43.55,7.02],marseille:[43.30,5.37],aix:[43.53,5.45],
+  avignon:[43.95,4.81],valence:[44.93,4.89],lyon:[45.76,4.84],
+  nimes:[43.84,4.36],montpellier:[43.61,3.88],beziers:[43.34,3.22],narbonne:[43.18,3.00],
+  perpignan:[42.70,2.90],carcassonne:[43.21,2.35],toulouse:[43.60,1.44],
+  agen:[44.20,0.62],bordeaux:[44.84,-0.58],dax:[43.70,-1.05],bayonne:[43.49,-1.48],pau:[43.30,-0.37],tarbes:[43.23,0.07],
+  angouleme:[45.65,0.16],poitiers:[46.58,0.34],tours:[47.39,0.69],
+  paris:[48.85,2.35],orleans:[47.90,1.90],bourges:[47.08,2.40],
+  lemans:[48.00,0.20],laval:[48.07,-0.77],angers:[47.47,-0.55],nantes:[47.22,-1.55],
+  rennes:[48.11,-1.68],stbrieuc:[48.51,-2.77],brest:[48.39,-4.49],vannes:[47.66,-2.76],lorient:[47.75,-3.37],quimper:[48.00,-4.10],
+  caen:[49.18,-0.37],cherbourg:[49.64,-1.62],avranches:[48.69,-1.36],rouen:[49.44,1.10],lehavre:[49.49,0.11],
+  lille:[50.63,3.06],calais:[50.95,1.86],laon:[49.56,3.62],
+  reims:[49.26,4.03],metz:[49.12,6.18],nancy:[48.69,6.18],strasbourg:[48.57,7.75],mulhouse:[47.75,7.34],belfort:[47.64,6.86],besancon:[47.24,6.02],dijon:[47.32,5.04],
+  nevers:[46.99,3.16],clermont:[45.78,3.08],limoges:[45.83,1.26],brive:[45.16,1.53],cahors:[44.45,1.44],
+  perigueux:[45.18,0.72],bergerac:[44.85,0.48],
+  grenoble:[45.19,5.72],chambery:[45.56,5.92],annecy:[45.90,6.13]
+};
+
+/* approx one-way train hours from Nice/Monaco — drives the green->red colour */
+const HRS={
+  nice:0,club:0,ventimiglia:0.5,cannes:0.5,toulon:1.7,marseille:2.5,aix:2.8,
+  avignon:3.5,valence:4.2,lyon:4.7,nimes:3.8,montpellier:4.0,beziers:4.6,narbonne:5.0,
+  perpignan:5.7,carcassonne:5.6,toulouse:6.0,agen:6.9,bordeaux:8.7,dax:9.6,bayonne:9.9,pau:8.6,tarbes:8.4,
+  angouleme:8.4,poitiers:8.0,tours:7.6,paris:6.0,orleans:7.0,bourges:7.6,
+  lemans:7.4,laval:7.7,angers:7.8,nantes:8.2,rennes:7.9,stbrieuc:8.7,brest:9.6,vannes:8.7,lorient:9.1,quimper:9.7,
+  caen:8.2,cherbourg:9.3,avranches:9.0,rouen:7.6,lehavre:8.3,lille:7.5,calais:8.4,laon:7.7,
+  reims:7.0,metz:7.9,nancy:7.7,strasbourg:7.9,mulhouse:6.9,belfort:6.7,besancon:6.4,dijon:6.2,
+  nevers:7.6,clermont:8.0,limoges:8.2,brive:8.9,cahors:7.6,perigueux:9.3,bergerac:10.0,
+  grenoble:6.0,chambery:6.3,annecy:7.0
+};
+
+/* the national network — every segment coloured by time */
+const network=[
+  ['nice','cannes','toulon','marseille','aix','avignon','valence','lyon','dijon','paris'],
+  ['nice','ventimiglia'],
+  ['marseille','nimes','montpellier','beziers','narbonne','perpignan'],
+  ['narbonne','carcassonne','toulouse','agen','bordeaux'],
+  ['paris','orleans','tours','poitiers','angouleme','bordeaux'],
+  ['bordeaux','dax','bayonne'],
+  ['bordeaux','agen','toulouse'],
+  ['toulouse','tarbes','pau','dax'],
+  ['paris','lemans','laval','rennes'],
+  ['rennes','stbrieuc','brest'],
+  ['rennes','vannes','lorient','quimper'],
+  ['lemans','angers','nantes'],
+  ['nantes','rennes'],
+  ['paris','rouen','lehavre'],
+  ['paris','caen','cherbourg'],
+  ['caen','avranches','rennes'],
+  ['paris','lille','calais'],
+  ['paris','reims','metz','strasbourg'],
+  ['reims','laon'],
+  ['strasbourg','mulhouse','belfort','besancon','dijon','lyon'],
+  ['paris','nevers','clermont'],
+  ['paris','orleans','bourges','limoges','brive','cahors','toulouse'],
+  ['bordeaux','perigueux','brive'],
+  ['lyon','chambery','annecy'],
+  ['lyon','grenoble'],
+  ['bordeaux','bergerac']
+];
+
+const regions=[
+  {label:"A",name:"Riviera base (the club)",cat:"club",pt:C.club,
+   rows:[["Role","Rent here, seasonal"],["Buy?","No — rent small"],["Why","Tennis + Côte d'Azur"]]},
+  {label:"1",name:"Occitanie",cat:"region",hrs:6,xfer:1,xferTxt:"0–1 (some direct)",pt:C.toulouse,
+   rows:[["Price","€300–850K"],["Train","~4–6h, no Paris"],["B&B","Good + sunny"],["Verdict","★ Best rail"]]},
+  {label:"2",name:"Loire Valley",cat:"region",hrs:7.6,xfer:1,pt:C.tours,
+   rows:[["Price","€430–795K"],["Train","~7–8h via Paris"],["B&B","Excellent"],["Verdict","Tourism + ok rail"]]},
+  {label:"3",name:"Dordogne / Périgord",cat:"region",hrs:10,xfer:2,pt:C.bergerac,
+   rows:[["Price","€178–780K"],["Train","~9–11h via Bordeaux"],["B&B","Excellent"],["Verdict","Best B&B, worst rail"]]},
+  {label:"4",name:"Hauts-de-France",cat:"region",hrs:7.7,xfer:1,pt:C.laon,
+   rows:[["Price","€178–718K"],["Train","~7.5h via Paris"],["B&B","Modest"],["Verdict","Cheap, grey"]]},
+  {label:"5",name:"Brittany (Morbihan)",cat:"region",hrs:8.7,xfer:1,pt:C.vannes,
+   rows:[["Price","€67–402K"],["Train","~8–9h via Paris"],["B&B","Good (coast)"],["Verdict","Cheapest, wet"]]},
+  {label:"6",name:"Normandy",cat:"region",hrs:9,xfer:2,pt:C.avranches,
+   rows:[["Price","from ~€180K"],["Train","~8h via Paris"],["B&B","Good"],["Verdict","Charming, far"]]}
+];
+
+/* real château/maison-de-maître listings in the Tarn (Occitanie) — verified ParuVendu, June 2026 */
+const candidates=[
+  {commune:"Saint-Paul-Cap-de-Joux (81)",price:"€546,000",size:"431 m² · 13 rooms · 5,691 m²",
+   note:"House + two renovated 3★ gîtes + historic outbuildings — B&B-ready",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288430438A1KIVHPR000",
+   station:"Saint-Paul-Cap-de-Joux–Damiatte",min:10,hrs:6.3,lat:43.642,lng:1.978},
+  {commune:"Rivières (81)",price:"€799,000",size:"374 m² · 10 rooms · 2.9 ha",
+   note:"17th-c chartreuse, pool, pigeonnier, parkland",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283633850A1KIVHPR000",
+   station:"Gaillac",min:6,hrs:6.5,lat:43.952,lng:1.950},
+  {commune:"Gaillac (81)",price:"€699,000",size:"235 m² + dépendances · 22 ha",
+   note:"Maison de maître + outbuildings, wine country",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1282317855A1KIVHPR000",
+   station:"Gaillac",min:7,hrs:6.5,lat:43.901,lng:1.898},
+  {commune:"Rabastens (81)",price:"€437,000",size:"295 m² · 8 rooms · 5,680 m²",
+   note:"Maison de maître + 120 m² dépendance + garage; station in town",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283550246A1KIVHPR000",
+   station:"Rabastens-Couffouleng",min:5,hrs:6.2,lat:43.824,lng:1.728},
+  {commune:"Réalmont (81)",price:"€320,000",size:"328 m² · 10 rooms · >1 ha park",
+   note:"Maison de maître + dépendances, between Albi & Castres — budget pick",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283124483A1KIVHPR000",
+   station:"Albi-Ville",min:20,hrs:6.6,lat:43.778,lng:2.190},
+  {commune:"Lavaur (81)",price:"€300,000",size:"302 m² · 6 bd · 5,500 m²",
+   note:"Maison de maître + grange, strong conversion potential",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290196619A1KIVHPR000",
+   station:"Lavaur",min:8,hrs:6.2,lat:43.699,lng:1.823},
+  {commune:"Chanos-Curson (26)",area:"Drôme · Rhône TGV line",price:"€750,000",size:"400 m² · 11 rooms · 1.15 ha",
+   note:"Restored 19th-c bastide, Drôme des collines — fastest rail of all the candidates",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1287661626A1KIVHPR000",
+   station:"Valence TGV",min:15,hrs:4.5,lat:45.066,lng:4.921},
+  {commune:"Mirabel-et-Blacons (26)",area:"Drôme · Rhône line",price:"€480,000",size:"377 m² · 8 rooms · 1,400 m²",
+   note:"1850 former coaching inn (relais de poste), strong B&B conversion",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290828688A1KIVHPR000",
+   station:"Crest",min:10,hrs:4.8,lat:44.733,lng:5.073},
+  {commune:"Chalon-sur-Saône / Saint-Marcel (71)",area:"Burgundy · TGV spine",price:"€558,000",size:"278 m² · 8 rooms · 3,300 m²",
+   note:"Longère with landscaped park, on the Paris–Lyon TGV spine",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1286158024A1KIVHPR000",
+   station:"Chalon-sur-Saône TGV",min:8,hrs:5.0,lat:46.787,lng:4.873},
+  {commune:"Verdun-sur-le-Doubs (71)",area:"Burgundy",price:"€920,000",size:"460 m² · 14 rooms · 9 bd",
+   note:"Turnkey chambres d'hôtes / hôtel, ready to operate — ERP already done",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1284454175A1KIVHPR000",
+   station:"Chagny / Chalon",min:20,hrs:5.2,lat:46.899,lng:5.022},
+  {commune:"Étang-sur-Arroux (71)",area:"Burgundy · Morvan edge",price:"€321,000",size:"317 m² · 10 rooms · 3 dwellings",
+   note:"Three independent units, gîte-ready — budget pick",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288336374A1KIVHPR000",
+   station:"Étang-sur-Arroux (TER)",min:5,hrs:5.6,lat:46.864,lng:4.191}
+];
+
+function gradeColor(hrs){
+  const t=Math.max(0,Math.min(1,(hrs-2)/(10-2)));  /* green starts at 2h */
+  const hue=130*(1-t);
+  return `hsl(${hue.toFixed(0)},62%,44%)`;
+}
+
+function buildMap(){
+  map=L.map('map',{scrollWheelZoom:true});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {subdomains:'abc',maxZoom:18,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+  const all=[];
+  /* every rail segment coloured by time-from-Monaco */
+  network.forEach(route=>{
+    for(let i=0;i<route.length-1;i++){
+      const n0=route[i], n1=route[i+1];
+      const col=gradeColor((HRS[n0]+HRS[n1])/2);
+      L.polyline([C[n0],C[n1]],{color:col,weight:3.4,opacity:.92,lineJoin:'round',lineCap:'round'}).addTo(map);
+      all.push(C[n0]);all.push(C[n1]);
+    }
+  });
+  /* pins: time-coloured, with a transfer-count badge */
+  regions.forEach(r=>{
+    const isClub=r.cat==='club';
+    const col=isClub?null:gradeColor(r.hrs);
+    const bg=col?`style="background:${col}"`:'';
+    const badge=isClub?'':`<div class="xfer">${r.xfer}</div>`;
+    const icon=L.divIcon({className:'',html:`<div class="pinwrap"><div class="pin ${r.cat}" ${bg}><span>${r.label}</span></div>${badge}</div>`,
+      iconSize:[28,28],iconAnchor:[8,26],popupAnchor:[6,-24]});
+    const rows=r.rows.map(x=>`<div class="row"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');
+    const xferRow=isClub?'':`<div class="row"><b>Changes</b><span>${r.xferTxt||r.xfer} from Monaco</span></div>`;
+    const tag=isClub?'Your base':'Cheap-château region';
+    L.marker(r.pt,{icon}).addTo(map).bindPopup(
+      `<div class="pop ${r.cat}"><div class="t">${tag}</div><h3>${r.name}</h3>${rows}${xferRow}</div>`,{maxWidth:242});
+    all.push(r.pt);
+  });
+  /* château candidates — circle markers coloured by time; popup link then station line */
+  candidates.forEach(c=>{
+    const col=gradeColor(c.hrs);
+    const icon=L.divIcon({className:'',html:`<div class="cand" style="background:${col}"></div>`,
+      iconSize:[16,16],iconAnchor:[8,8],popupAnchor:[0,-8]});
+    const html=`<div class="pop cand"><div class="t">Château candidate · ${c.area||'Tarn · Occitanie'}</div><h3>${c.commune}</h3>`+
+      `<div class="row"><b>Price</b><span>${c.price}</span></div>`+
+      `<div class="row"><b>Size</b><span>${c.size}</span></div>`+
+      `<div class="row"><b>Note</b><span>${c.note}</span></div>`+
+      `<a class="btn" href="${c.url}" target="_blank" rel="noopener">View listing →</a>`+
+      `<div class="station">🚉 ${c.station} · ~${c.min} min by car</div></div>`;
+    L.marker([c.lat,c.lng],{icon}).addTo(map).bindPopup(html,{maxWidth:246});
+    all.push([c.lat,c.lng]);
+  });
+  map.fitBounds(all,{padding:[40,40]});
+}
+buildMap();mapInit=true;
+
+/* ---- mortgage calculator ---- */
+function eur(n){return '€'+Math.round(n).toLocaleString('en-US');}
+function calc(){
+  const g=id=>document.getElementById(id);
+  const price=+g('c-price').value||0, dep=+g('c-dep').value, rate=+g('c-rate').value, term=+g('c-term').value, ins=+g('c-ins').value;
+  g('v-dep').textContent=dep+'%';
+  g('v-rate').textContent=rate.toFixed(2)+'%';
+  g('v-term').textContent=term+' yr';
+  g('v-ins').textContent=ins.toFixed(2)+'%';
+  const loan=price*(1-dep/100);
+  const r=rate/100/12, n=term*12;
+  const mPI = r>0 ? loan*r/(1-Math.pow(1+r,-n)) : loan/n;
+  const mIns = loan*(ins/100)/12;
+  const upfront = price*(dep/100) + price*0.075 + price*0.01;
+  const totalInt = mPI*n - loan;
+  g('o-loan').textContent=eur(loan);
+  g('o-pi').textContent=eur(mPI)+'/mo';
+  g('o-ins').textContent=eur(mIns)+'/mo';
+  g('o-tot').textContent=eur(mPI+mIns)+'/mo';
+  g('o-up').textContent=eur(upfront);
+  g('o-int').textContent=eur(totalInt);
+}
+['c-price','c-dep','c-rate','c-term','c-ins'].forEach(id=>{
+  const el=document.getElementById(id); if(el) el.addEventListener('input',calc);
+});
+calc();
+</script>
+</body>
+</html>
