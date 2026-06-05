@@ -249,7 +249,7 @@ function activate(id){
     x.tabIndex=on?0:-1;
   });
   document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('active',s.id==='tab-'+id));
-  if(id==='map'){ if(!mapInit){buildMap();mapInit=true;} setTimeout(()=>map.invalidateSize(),60); }
+  if(id==='map'){ if(!mapInit){buildMap();mapInit=true;} setTimeout(()=>{ if(map&&map.invalidateSize) map.invalidateSize(); },60); }
   store.set('cbt-tab',id);
 }
 nav.addEventListener('click',e=>{
