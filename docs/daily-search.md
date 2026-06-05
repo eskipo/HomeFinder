@@ -43,20 +43,17 @@ committed straight to the working branch. Never overwrite or edit verified data.
    price, region, why it passed), then push the branch.
    **If nothing new**: do not commit; end the run noting "no new listings today".
 
-## Sources (Instagram-derived, but mined compliantly)
-We do **not** scrape Instagram — it blocks automated access (403/login wall) and it
-violates their ToS. The popular property accounts are only a curation layer; mine the
-brokers they repost instead. Run the corridor queries above against these portals:
+## Sources
+The full, categorized brokerage & portal list lives in **`docs/sources.md`** — query a
+rotating subset of those by name + corridor + price each run.
 
-- Cabinet Le Nail · Patrice Besse · Leggett Prestige · Sifex · French-Property.com
-- Belles Demeures · Green-Acres · Ma-Propriété · BellesPierres · Le Figaro Propriétés
-- Curation accounts to watch for *which brokers are hot* (browse manually, don't scrape):
-  @dreamfrenchproperties and similar. When the owner pastes an Instagram post's caption
-  or its outbound listing link into a session, add that specific property directly.
-
-If you ever want true Instagram data, the only compliant route is the official
-**Instagram Graph API** hashtag search — which needs a Business/Creator account plus app
-review and returns only limited recent media. It is out of scope for this routine.
+We do **not** scrape Instagram or the broker sites directly — they block automated
+access (403/login wall) and scraping violates their ToS. The popular property accounts
+are only a curation layer; mine the brokers they repost (in `docs/sources.md`) instead.
+When the owner pastes an Instagram post's caption or its outbound listing link into a
+session, add that specific property directly. The only compliant route to true Instagram
+data is the official **Graph API** hashtag search (Business account + app review, limited
+recent media) — out of scope for this routine.
 
 ## Guardrails
 - Portals (ParuVendu, French-Property, etc.) return 403 to automated fetch — rely on
