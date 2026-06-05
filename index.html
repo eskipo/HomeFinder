@@ -402,10 +402,47 @@ function gradeColor(hrs){
   return `hsl(${hue.toFixed(0)},62%,44%)`;
 }
 
+/* ---- offline fallback map: inline SVG, no external library or tiles ----
+   Used when the in-app viewer blocks the external Leaflet script. */
+const FR=[[2.55,51.05],[4.23,50.28],[6.12,49.46],[8.13,48.95],[7.59,47.59],[6.86,47.0],[6.02,46.28],[6.8,45.9],[7.0,45.2],[6.86,44.36],[7.66,43.99],[7.44,43.75],[6.37,43.16],[5.35,43.31],[4.05,43.55],[3.05,42.47],[2.0,42.35],[0.66,42.69],[-1.39,43.28],[-1.25,44.5],[-1.06,45.57],[-1.2,46.31],[-2.16,47.0],[-2.55,47.51],[-4.78,48.04],[-4.27,48.68],[-1.85,48.62],[-1.61,49.72],[0.18,49.7],[1.56,50.74],[2.55,51.05]];
+const PB={lng0:-5.4,lng1:8.4,lat0:42.0,lat1:51.3,W:1000,H:1090};
+function prj(lat,lng){return [ (lng-PB.lng0)/(PB.lng1-PB.lng0)*PB.W, (PB.lat1-lat)/(PB.lat1-PB.lat0)*PB.H ];}
+function renderStaticMap(el){
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const d='M'+FR.map(p=>{const q=prj(p[1],p[0]);return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' L')+' Z';
+  let lines='';
+  network.forEach(route=>{
+    for(let i=0;i<route.length-1;i++){
+      const A=prj(C[route[i]][0],C[route[i]][1]), B=prj(C[route[i+1]][0],C[route[i+1]][1]);
+      const col=gradeColor((HRS[route[i]]+HRS[route[i+1]])/2);
+      lines+=`<line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" stroke="${col}" stroke-width="3.4" stroke-linecap="round"/>`;
+    }
+  });
+  let pins='';
+  regions.forEach(r=>{
+    const q=prj(r.pt[0],r.pt[1]), isClub=r.cat==='club';
+    const col=isClub?'#c39438':gradeColor(r.hrs), rad=isClub?16:13;
+    pins+=`<g><title>${esc(r.name)}</title><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${rad}" fill="${col}" stroke="#fff" stroke-width="2.6"/>`+
+      `<text x="${q[0].toFixed(1)}" y="${(q[1]+5).toFixed(1)}" text-anchor="middle" font-size="15" font-weight="700" fill="#fff" font-family="Hanken Grotesk,sans-serif">${esc(r.label)}</text></g>`;
+  });
+  let cands='';
+  candidates.forEach(c=>{
+    const q=prj(c.lat,c.lng), col=gradeColor(c.hrs);
+    cands+=`<a href="${esc(c.url)}" target="_blank" rel="noopener"><title>${esc(c.commune)} · ${esc(c.price)} · ~${c.hrs}h</title>`+
+      `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="7.5" fill="${col}" stroke="#fff" stroke-width="2"/></a>`;
+  });
+  el.innerHTML=`<div style="position:absolute;inset:0;overflow:auto;background:#aadaff;-webkit-overflow-scrolling:touch">`+
+    `<div style="padding:8px 12px;font:600 11px/1.45 'Hanken Grotesk',system-ui,sans-serif;color:#0e4257;background:rgba(251,247,238,.94);border-bottom:1px solid rgba(43,39,34,.14)">Simplified offline map — the live, draggable version needs a regular browser. Lines &amp; dots are coloured by rail time from Monaco; tap a small dot to open its listing.</div>`+
+    `<svg viewBox="0 0 ${PB.W} ${PB.H}" width="100%" style="display:block" xmlns="http://www.w3.org/2000/svg">`+
+    `<rect width="${PB.W}" height="${PB.H}" fill="#aadaff"/>`+
+    `<path d="${d}" fill="#fbf7ee" stroke="#cbb994" stroke-width="2"/>`+
+    lines+pins+cands+`</svg></div>`;
+}
+
 function buildMap(){
   const mapEl=document.getElementById('map');
   if(typeof L==='undefined' || !mapEl){
-    if(mapEl) mapEl.innerHTML='<div class="maperr">The map needs an internet connection — it loads the Leaflet library and map tiles online. Open this file in a normal web browser (Chrome, Safari or Firefox) while connected. The Regions, Châteaux, decision, rules and finance tabs all work offline.</div>';
+    if(mapEl) renderStaticMap(mapEl);   /* Leaflet blocked → draw the inline SVG map */
     return;
   }
   map=L.map('map',{scrollWheelZoom:true});
