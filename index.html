@@ -112,6 +112,7 @@
   button.estbtn{margin-top:5px;font-family:inherit;font-size:10.5px;font-weight:700;color:var(--paper);background:var(--clay);border:none;border-radius:7px;padding:4px 8px;cursor:pointer;white-space:nowrap;}
   button.estbtn:hover{filter:brightness(1.06);}
   nav button:focus-visible{outline:2px solid var(--clay);outline-offset:-2px;}
+  .maperr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font:600 14px/1.55 "Hanken Grotesk",system-ui,sans-serif;color:var(--sea-deep);background:var(--cream);}
 </style>
 </head>
 <body>
@@ -402,9 +403,26 @@ function gradeColor(hrs){
 }
 
 function buildMap(){
+  const mapEl=document.getElementById('map');
+  if(typeof L==='undefined' || !mapEl){
+    if(mapEl) mapEl.innerHTML='<div class="maperr">The map needs an internet connection — it loads the Leaflet library and map tiles online. Open this file in a normal web browser (Chrome, Safari or Firefox) while connected. The Regions, Châteaux, decision, rules and finance tabs all work offline.</div>';
+    return;
+  }
   map=L.map('map',{scrollWheelZoom:true});
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    {subdomains:'abc',maxZoom:18,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+  /* try a CORS-friendly basemap first, fall back to OSM if it's blocked */
+  const tileSets=[
+    {url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+     opts:{subdomains:'abcd',maxZoom:19,attribution:'&copy; OpenStreetMap, &copy; CARTO'}},
+    {url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+     opts:{subdomains:'abc',maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}}
+  ];
+  let tileIdx=0, tileLayer;
+  (function addTiles(){
+    if(tileLayer) map.removeLayer(tileLayer);
+    const t=tileSets[tileIdx]; let errs=0;
+    tileLayer=L.tileLayer(t.url,t.opts).addTo(map);
+    tileLayer.on('tileerror',()=>{ if(++errs>5 && tileIdx<tileSets.length-1){ tileIdx++; addTiles(); }});
+  })();
   const all=[];
   /* every rail segment coloured by time-from-Monaco */
   network.forEach(route=>{
@@ -527,6 +545,9 @@ function calc(){
   el.addEventListener('input',()=>{ store.set('cbt-'+id,el.value); calc(); });
 });
 calc();
+
+/* keep the map sized correctly after rotation / window resize */
+window.addEventListener('resize',()=>{ if(map&&map.invalidateSize) map.invalidateSize(); });
 
 /* restore last-viewed tab (defaults to the map) */
 activate(store.get('cbt-tab')||'map');
