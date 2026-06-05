@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#16607e"/>
+<meta name="description" content="Compare rail-reachable cheap-château regions from a Monaco/Riviera base — regions, decision paths, operating rules, real listings, and a French mortgage calculator."/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%B0%3C/text%3E%3C/svg%3E"/>
 <title>Château by Train — Riviera base, château business</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -99,6 +102,16 @@
   .pop .station{margin-top:7px;font-size:11.5px;color:var(--sea-deep);font-weight:700;text-align:center;}
   .pop .url{margin-top:7px;padding-top:6px;border-top:1px solid var(--line);font-size:9.5px;line-height:1.35;color:var(--muted);word-break:break-all;user-select:all;-webkit-user-select:all;}
   .candkey{display:inline-block;width:12px;height:12px;border-radius:50%;background:#cdb56a;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.22);vertical-align:middle;margin-right:6px;}
+  .timepill{display:inline-block;color:#fff;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:20px;}
+  th.sort{cursor:pointer;user-select:none;white-space:nowrap;}
+  th.sort .arr{opacity:.45;font-size:8.5px;letter-spacing:-1px;}
+  th.sort.act{color:var(--ink);}
+  th.sort.act .arr{opacity:1;}
+  a.lnk{color:var(--clay-deep);font-weight:700;text-decoration:none;font-size:11.5px;white-space:nowrap;}
+  a.lnk:hover{text-decoration:underline;}
+  button.estbtn{margin-top:5px;font-family:inherit;font-size:10.5px;font-weight:700;color:var(--paper);background:var(--clay);border:none;border-radius:7px;padding:4px 8px;cursor:pointer;white-space:nowrap;}
+  button.estbtn:hover{filter:brightness(1.06);}
+  nav button:focus-visible{outline:2px solid var(--clay);outline-offset:-2px;}
 </style>
 </head>
 <body>
@@ -106,12 +119,13 @@
   <header>
     <p class="kicker">Retirement plan · rent on the Riviera, own the château</p>
     <h1>Château <em>by train</em> — the factors, side by side</h1>
-    <nav id="nav">
-      <button class="active" data-tab="map">🚆 Map &amp; routes</button>
-      <button data-tab="regions">Regions</button>
-      <button data-tab="decision">The decision</button>
-      <button data-tab="rules">The rules</button>
-      <button data-tab="finance">💶 Buy &amp; finance</button>
+    <nav id="nav" role="tablist" aria-label="Sections">
+      <button class="active" role="tab" aria-selected="true" aria-controls="tab-map" data-tab="map">🚆 Map &amp; routes</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-regions" tabindex="-1" data-tab="regions">Regions</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-chateaux" tabindex="-1" data-tab="chateaux">🏰 Châteaux</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-decision" tabindex="-1" data-tab="decision">The decision</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-rules" tabindex="-1" data-tab="rules">The rules</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-finance" tabindex="-1" data-tab="finance">💶 Buy &amp; finance</button>
     </nav>
   </header>
   <main>
@@ -141,6 +155,22 @@
         <tr><td><span class="rk">6.</span> <b>Normandy</b><br>Manche / Avranches</td><td>from ~€180K</td><td>~8h<br>via Paris</td><td>2</td><td>Charming, long haul</td></tr>
       </table>
       <p class="foot">Price bands are from the listings you shared (cheappropertyfrance / housstyler) plus regional norms; treat as indicative, not quotes. The honest tension: the strongest B&amp;B market (Dordogne) is the hardest to reach by rail, while the easiest rail (Occitanie) is also sunny and cheaper than the Riviera.</p>
+    </section>
+
+    <section class="tab pad" id="tab-chateaux" role="tabpanel" aria-label="Châteaux">
+      <h2>Château candidates — the actual listings</h2>
+      <p class="lede">Real ParuVendu listings (verified June 2026) in the rail-reachable sweet spots — the <b>Tarn</b> (Occitanie), the <b>Drôme</b> (Rhône TGV line) and <b>Burgundy</b> (the Paris–Lyon spine). Tap a column header to sort; <b>Estimate €</b> drops the asking price into the mortgage calculator.</p>
+      <table>
+        <thead><tr>
+          <th>Commune</th>
+          <th class="sort" data-sort="price">Price <span class="arr">▲▼</span></th>
+          <th class="sort" data-sort="size">Size <span class="arr">▲▼</span></th>
+          <th class="sort act" data-sort="hrs">Rail time <span class="arr">▲</span></th>
+          <th>Links</th>
+        </tr></thead>
+        <tbody id="cand-body"></tbody>
+      </table>
+      <p class="foot">Rail time is the one-way estimate from Nice/Monaco used to colour the map. Listings are third-party and move fast — confirm price, ERP/DPE status and the PLU zoning of every parcel before committing. Not advice; not quotes.</p>
     </section>
 
     <section class="tab pad" id="tab-decision">
@@ -202,12 +232,34 @@
 <script>
 const nav=document.getElementById('nav');
 let mapInit=false, map;
-nav.addEventListener('click',e=>{
-  const b=e.target.closest('button'); if(!b)return;
-  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));
-  const id=b.dataset.tab;
+const store={get:k=>{try{return localStorage.getItem(k);}catch(e){return null;}},
+             set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}}};
+
+function activate(id){
+  document.querySelectorAll('nav button').forEach(x=>{
+    const on=x.dataset.tab===id;
+    x.classList.toggle('active',on);
+    x.setAttribute('aria-selected',on?'true':'false');
+    x.tabIndex=on?0:-1;
+  });
   document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('active',s.id==='tab-'+id));
   if(id==='map'){ if(!mapInit){buildMap();mapInit=true;} setTimeout(()=>map.invalidateSize(),60); }
+  store.set('cbt-tab',id);
+}
+nav.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  activate(b.dataset.tab);
+});
+nav.addEventListener('keydown',e=>{
+  const btns=[...nav.querySelectorAll('button')];
+  const i=btns.indexOf(document.activeElement); if(i<0)return;
+  let j;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')j=(i+1)%btns.length;
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp')j=(i-1+btns.length)%btns.length;
+  else if(e.key==='Home')j=0;
+  else if(e.key==='End')j=btns.length-1;
+  else return;
+  e.preventDefault(); btns[j].focus(); activate(btns[j].dataset.tab);
 });
 
 /* city coordinates [lat,lng] */
@@ -389,7 +441,50 @@ function buildMap(){
   });
   map.fitBounds(all,{padding:[40,40]});
 }
-buildMap();mapInit=true;
+
+/* ---- château candidate list (Châteaux tab) ---- */
+function priceNum(s){const d=String(s).replace(/[^\d]/g,'');return d?+d:0;}
+function sizeNum(s){const m=String(s).match(/([\d.,]+)\s*m²/);return m?parseFloat(m[1].replace(/[, ]/g,'')):0;}
+let candSort={key:'hrs',dir:1};
+function renderCands(){
+  const tb=document.getElementById('cand-body'); if(!tb)return;
+  const rows=candidates.slice().sort((a,b)=>{
+    if(candSort.key==='price')return candSort.dir*(priceNum(a.price)-priceNum(b.price));
+    if(candSort.key==='size') return candSort.dir*(sizeNum(a.size)-sizeNum(b.size));
+    return candSort.dir*(a.hrs-b.hrs);
+  });
+  tb.innerHTML=rows.map(c=>{
+    const col=gradeColor(c.hrs);
+    return `<tr>`+
+      `<td><b>${c.commune}</b><br><span style="color:var(--muted)">${c.area||'Tarn · Occitanie'}</span></td>`+
+      `<td><b>${c.price}</b></td>`+
+      `<td>${c.size}</td>`+
+      `<td><span class="timepill" style="background:${col}">~${c.hrs}h</span><br><span style="color:var(--muted);font-size:10px">🚉 ${c.station} · ${c.min}min</span></td>`+
+      `<td><a class="lnk" href="${c.url}" target="_blank" rel="noopener">Listing →</a><br>`+
+        `<button class="estbtn" data-price="${priceNum(c.price)}">Estimate €</button></td>`+
+      `</tr>`;
+  }).join('');
+  tb.querySelectorAll('.estbtn').forEach(b=>b.addEventListener('click',()=>{
+    const inp=document.getElementById('c-price');
+    inp.value=b.dataset.price;
+    inp.dispatchEvent(new Event('input'));
+    activate('finance');
+    setTimeout(()=>document.getElementById('o-tot').scrollIntoView({behavior:'smooth',block:'center'}),80);
+  }));
+}
+document.querySelectorAll('#tab-chateaux th.sort').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const k=th.dataset.sort;
+    if(candSort.key===k)candSort.dir*=-1; else {candSort.key=k;candSort.dir=1;}
+    document.querySelectorAll('#tab-chateaux th.sort').forEach(x=>{
+      const on=x===th, arr=x.querySelector('.arr');
+      x.classList.toggle('act',on);
+      if(arr)arr.textContent=on?(candSort.dir>0?'▲':'▼'):'▲▼';
+    });
+    renderCands();
+  });
+});
+renderCands();
 
 /* ---- mortgage calculator ---- */
 function eur(n){return '€'+Math.round(n).toLocaleString('en-US');}
@@ -414,9 +509,14 @@ function calc(){
   g('o-int').textContent=eur(totalInt);
 }
 ['c-price','c-dep','c-rate','c-term','c-ins'].forEach(id=>{
-  const el=document.getElementById(id); if(el) el.addEventListener('input',calc);
+  const el=document.getElementById(id); if(!el)return;
+  const saved=store.get('cbt-'+id); if(saved!==null && saved!=='') el.value=saved;
+  el.addEventListener('input',()=>{ store.set('cbt-'+id,el.value); calc(); });
 });
 calc();
+
+/* restore last-viewed tab (defaults to the map) */
+activate(store.get('cbt-tab')||'map');
 </script>
 </body>
 </html>
