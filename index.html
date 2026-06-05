@@ -154,6 +154,10 @@
   a.lnk{color:var(--clay-deep);font-weight:700;text-decoration:none;font-size:12px;}
   a.lnk:hover{text-decoration:underline;}
   .timepill{display:inline-block;color:#fff;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:20px;}
+  .vpill{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#b5462f;background:#f6e1d8;padding:2px 6px;border-radius:20px;margin-left:4px;vertical-align:middle;}
+  .vpill.ok{color:#3f7d52;background:#e7efe0;}
+  .estg{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;}
+  .fnote{font-size:10px;color:var(--muted);line-height:1.4;margin:8px 0 0;}
 </style>
 </head>
 <body>
@@ -186,6 +190,7 @@
   <div class="togrow">
     <label class="tog"><input type="checkbox" id="f-period" checked> Period character only</label>
     <label class="tog"><input type="checkbox" id="f-bnb"> B&amp;B-ready</label>
+    <label class="tog"><input type="checkbox" id="f-verif"> Verified only</label>
   </div>
   <label class="threshlab">Charm threshold <span class="v" id="f-threshv">60</span><input id="f-thresh" type="range" min="0" max="100" step="5" value="60"></label>
   <div class="chips3"><span class="chl">Charm weighs:</span>
@@ -195,6 +200,7 @@
     <button id="f-reset" type="button" class="resetbtn">Reset</button>
   </div>
   <div id="f-count" class="fcount">—</div>
+  <p class="fnote">11 listings are <b>verified</b> (hand-checked); the rest are <b>search-sourced</b> &amp; marked “unverified” with <b>est.</b> prices — confirm on the listing before acting.</p>
 </div>
 <div id="findmap" class="findmap"></div>
 <div id="f-list" class="flist"></div>
@@ -475,19 +481,29 @@ const club=C.club;
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const eur=n=>'€'+(n>=1e6?(n/1e6).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'M':Math.round(n/1000)+'K');
 
-/* curated, charm-screened dataset (verified ParuVendu, June 2026). year=null → era unknown */
+/* dataset. verified=true → original hand-checked ParuVendu set; verified=false → search-sourced, confirm before acting.
+   priceNote 'est' → price is an indicative estimate, not a quoted price. year=null → era unknown. */
 const LIST=[
- {id:1,commune:"Saint-Paul-Cap-de-Joux",dept:"81",region:"Occitanie (Tarn)",price:546000,m2:431,rooms:13,bd:6,land_ha:0.57,year:null,typ:"demeure",typLabel:"Demeure + 2 gîtes",charming:true,feats:["Historic outbuildings","Two 3★ gîtes","B&B-ready"],bnb:true,erp:false,station:"Saint-Paul–Damiatte",carMin:10,hrs:8.0,changes:2,lat:43.642,lng:1.978,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288430438A1KIVHPR000"},
- {id:2,commune:"Rivières",dept:"81",region:"Occitanie (Tarn)",price:799000,m2:374,rooms:10,bd:5,land_ha:2.9,year:1650,typ:"chartreuse",typLabel:"17th-c chartreuse",charming:true,feats:["Pigeonnier","Parkland","Pool","Period stone"],bnb:false,erp:false,station:"Gaillac",carMin:6,hrs:7.9,changes:2,lat:43.952,lng:1.950,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283633850A1KIVHPR000"},
- {id:3,commune:"Gaillac",dept:"81",region:"Occitanie (Tarn)",price:699000,m2:235,rooms:8,bd:4,land_ha:22,year:null,typ:"maison_maitre",typLabel:"Maison de maître",charming:true,feats:["Outbuildings","22 ha wine country"],bnb:false,erp:false,station:"Gaillac",carMin:7,hrs:7.9,changes:2,lat:43.901,lng:1.898,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1282317855A1KIVHPR000"},
- {id:4,commune:"Rabastens",dept:"81",region:"Occitanie (Tarn)",price:437000,m2:295,rooms:8,bd:4,land_ha:0.57,year:null,typ:"maison_maitre",typLabel:"Maison de maître",charming:true,feats:["120 m² dépendance","Garage","Station in town"],bnb:false,erp:false,station:"Rabastens-Couffouleng",carMin:5,hrs:7.6,changes:2,lat:43.824,lng:1.728,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283550246A1KIVHPR000"},
- {id:5,commune:"Réalmont",dept:"81",region:"Occitanie (Tarn)",price:320000,m2:328,rooms:10,bd:5,land_ha:1.0,year:null,typ:"maison_maitre",typLabel:"Maison de maître",charming:true,feats:["Dépendances","Parkland"],bnb:false,erp:false,station:"Albi-Ville",carMin:20,hrs:8.5,changes:2,lat:43.778,lng:2.190,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283124483A1KIVHPR000"},
- {id:6,commune:"Lavaur",dept:"81",region:"Occitanie (Tarn)",price:300000,m2:302,rooms:7,bd:6,land_ha:0.55,year:null,typ:"maison_maitre",typLabel:"Maison de maître",charming:true,feats:["Grange","Conversion potential"],bnb:false,erp:false,station:"Lavaur",carMin:8,hrs:7.6,changes:2,lat:43.699,lng:1.823,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290196619A1KIVHPR000"},
- {id:7,commune:"Chanos-Curson",dept:"26",region:"Drôme",price:750000,m2:400,rooms:11,bd:5,land_ha:1.15,year:1850,typ:"bastide",typLabel:"19th-c bastide",charming:true,feats:["Restored","Drôme des collines","Fastest rail"],bnb:false,erp:false,station:"Valence TGV",carMin:15,hrs:4.2,changes:1,lat:45.066,lng:4.921,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1287661626A1KIVHPR000"},
- {id:8,commune:"Mirabel-et-Blacons",dept:"26",region:"Drôme",price:480000,m2:377,rooms:8,bd:4,land_ha:0.14,year:1850,typ:"relais",typLabel:"1850 relais de poste",charming:true,feats:["Former coaching inn","B&B conversion"],bnb:false,erp:false,station:"Crest",carMin:10,hrs:5.4,changes:1,lat:44.733,lng:5.073,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290828688A1KIVHPR000"},
- {id:9,commune:"Chalon-sur-Saône / Saint-Marcel",dept:"71",region:"Burgundy",price:558000,m2:278,rooms:8,bd:4,land_ha:0.33,year:null,typ:"longere",typLabel:"Longère + park",charming:true,feats:["Landscaped park","On TGV spine"],bnb:false,erp:false,station:"Chalon-sur-Saône TGV",carMin:8,hrs:6.2,changes:1,lat:46.787,lng:4.873,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1286158024A1KIVHPR000"},
- {id:10,commune:"Verdun-sur-le-Doubs",dept:"71",region:"Burgundy",price:920000,m2:460,rooms:14,bd:9,land_ha:0.2,year:null,typ:"demeure",typLabel:"Turnkey chambres d'hôtes",charming:true,feats:["Turnkey B&B","ERP already done","9 bedrooms"],bnb:true,erp:true,station:"Chagny / Chalon",carMin:20,hrs:6.3,changes:1,lat:46.899,lng:5.022,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1284454175A1KIVHPR000"},
- {id:11,commune:"Étang-sur-Arroux",dept:"71",region:"Burgundy",price:321000,m2:317,rooms:10,bd:5,land_ha:0.3,year:null,typ:"maison",typLabel:"House · 3 units",charming:false,feats:["Three independent units","Gîte-ready"],bnb:false,erp:false,station:"Étang-sur-Arroux (TER)",carMin:5,hrs:7.5,changes:2,lat:46.864,lng:4.191,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288336374A1KIVHPR000"}
+ {id:1,commune:"Saint-Paul-Cap-de-Joux",dept:"81",region:"Occitanie · Tarn",price:546000,priceNote:"listed",verified:true,m2:431,bd:6,land_ha:0.57,year:null,typ:"demeure",typLabel:"Demeure + 2 gîtes",charming:true,feats:["Historic outbuildings","Two 3★ gîtes","B&B-ready"],bnb:true,erp:false,station:"Saint-Paul–Damiatte",carMin:10,hrs:8.0,changes:2,lat:43.642,lng:1.978,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288430438A1KIVHPR000"},
+ {id:2,commune:"Rivières",dept:"81",region:"Occitanie · Tarn",price:799000,priceNote:"listed",verified:true,m2:374,bd:5,land_ha:2.9,year:1650,typ:"chartreuse",typLabel:"17th-c chartreuse",charming:true,feats:["Pigeonnier","Parkland","Pool","Period stone"],bnb:false,erp:false,station:"Gaillac",carMin:6,hrs:7.9,changes:2,lat:43.952,lng:1.950,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283633850A1KIVHPR000"},
+ {id:3,commune:"Gaillac",dept:"81",region:"Occitanie · Tarn",price:699000,priceNote:"listed",verified:true,m2:235,bd:4,land_ha:22,year:null,typ:"maison_maitre",typLabel:"Maison de maître",charming:true,feats:["Outbuildings","22 ha wine country"],bnb:false,erp:false,station:"Gaillac",carMin:7,hrs:7.9,changes:2,lat:43.901,lng:1.898,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1282317855A1KIVHPR000"},
+ {id:4,commune:"Rabastens",dept:"81",region:"Occitanie · Tarn",price:437000,priceNote:"listed",verified:true,m2:295,bd:4,land_ha:0.57,year:null,typ:"maison_maitre",typLabel:"Maison de maître",charming:true,feats:["120 m² dépendance","Garage","Station in town"],bnb:false,erp:false,station:"Rabastens-Couffouleng",carMin:5,hrs:7.6,changes:2,lat:43.824,lng:1.728,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283550246A1KIVHPR000"},
+ {id:5,commune:"Réalmont",dept:"81",region:"Occitanie · Tarn",price:320000,priceNote:"listed",verified:true,m2:328,bd:5,land_ha:1.0,year:null,typ:"maison_maitre",typLabel:"Maison de maître",charming:true,feats:["Dépendances","Parkland"],bnb:false,erp:false,station:"Albi-Ville",carMin:20,hrs:8.5,changes:2,lat:43.778,lng:2.190,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283124483A1KIVHPR000"},
+ {id:6,commune:"Lavaur",dept:"81",region:"Occitanie · Tarn",price:300000,priceNote:"listed",verified:true,m2:302,bd:6,land_ha:0.55,year:null,typ:"maison_maitre",typLabel:"Maison de maître",charming:true,feats:["Grange","Conversion potential"],bnb:false,erp:false,station:"Lavaur",carMin:8,hrs:7.6,changes:2,lat:43.699,lng:1.823,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290196619A1KIVHPR000"},
+ {id:7,commune:"Chanos-Curson",dept:"26",region:"Drôme · Rhône",price:750000,priceNote:"listed",verified:true,m2:400,bd:5,land_ha:1.15,year:1850,typ:"bastide",typLabel:"19th-c bastide",charming:true,feats:["Restored","Drôme des collines","Fastest rail"],bnb:false,erp:false,station:"Valence TGV",carMin:15,hrs:4.2,changes:1,lat:45.066,lng:4.921,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1287661626A1KIVHPR000"},
+ {id:8,commune:"Mirabel-et-Blacons",dept:"26",region:"Drôme · Rhône",price:480000,priceNote:"listed",verified:true,m2:377,bd:4,land_ha:0.14,year:1850,typ:"relais",typLabel:"1850 relais de poste",charming:true,feats:["Former coaching inn","B&B conversion"],bnb:false,erp:false,station:"Crest",carMin:10,hrs:5.4,changes:1,lat:44.733,lng:5.073,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290828688A1KIVHPR000"},
+ {id:9,commune:"Chalon-sur-Saône / Saint-Marcel",dept:"71",region:"Burgundy",price:558000,priceNote:"listed",verified:true,m2:278,bd:4,land_ha:0.33,year:null,typ:"longere",typLabel:"Longère + park",charming:true,feats:["Landscaped park","On TGV spine"],bnb:false,erp:false,station:"Chalon-sur-Saône TGV",carMin:8,hrs:6.2,changes:1,lat:46.787,lng:4.873,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1286158024A1KIVHPR000"},
+ {id:10,commune:"Verdun-sur-le-Doubs",dept:"71",region:"Burgundy",price:920000,priceNote:"listed",verified:true,m2:460,bd:9,land_ha:0.2,year:null,typ:"demeure",typLabel:"Turnkey chambres d'hôtes",charming:true,feats:["Turnkey B&B","ERP already done","9 bedrooms"],bnb:true,erp:true,station:"Chagny / Chalon",carMin:20,hrs:6.3,changes:1,lat:46.899,lng:5.022,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1284454175A1KIVHPR000"},
+ {id:11,commune:"Étang-sur-Arroux",dept:"71",region:"Burgundy",price:321000,priceNote:"listed",verified:true,m2:317,bd:5,land_ha:0.3,year:null,typ:"maison",typLabel:"House · 3 units",charming:false,feats:["Three independent units","Gîte-ready"],bnb:false,erp:false,station:"Étang-sur-Arroux (TER)",carMin:5,hrs:7.5,changes:2,lat:46.864,lng:4.191,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288336374A1KIVHPR000"},
+ /* ---- search-sourced (June 2026), unverified — confirm before acting ---- */
+ {id:12,commune:"Charnay-lès-Mâcon",dept:"71",region:"Burgundy",price:499000,priceNote:"listed",verified:false,m2:135,bd:3,land_ha:0.3,year:1850,typ:"demeure",typLabel:"Château outbuilding + dovecote",charming:true,feats:["11th-c dovecote","Vaulted cellar","Gîte potential","Wooded garden"],bnb:false,erp:false,station:"Mâcon-Loché TGV",carMin:10,hrs:5.8,changes:1,lat:46.298,lng:4.785,url:"https://www.french-property.com/sale-property/3772-A3q0qt82aq62a97n"},
+ {id:13,commune:"Lasbordes",dept:"11",region:"Languedoc · Med line",price:695000,priceNote:"est",verified:false,m2:550,bd:5,land_ha:4,year:1550,typ:"chateau",typLabel:"Château + fortified farm",charming:true,feats:["15th–17th century","Collection of buildings","4 ha"],bnb:false,erp:false,station:"Castelnaudary",carMin:12,hrs:5.9,changes:1,lat:43.296,lng:1.969,url:null},
+ {id:14,commune:"Condom",dept:"32",region:"Occitanie · Gers",price:790000,priceNote:"est",verified:false,m2:550,bd:7,land_ha:3.3,year:1750,typ:"chartreuse",typLabel:"1750 chartreuse",charming:true,feats:["Period stuccos","Walled estate","Pool","Gîte potential"],bnb:false,erp:false,station:"Agen",carMin:40,hrs:7.6,changes:2,lat:43.958,lng:0.371,url:null},
+ {id:15,commune:"Near Loriol (Valence–Montélimar)",dept:"26",region:"Drôme · Rhône",price:590000,priceNote:"est",verified:false,m2:460,bd:7,land_ha:0.5,year:1870,typ:"maison_maitre",typLabel:"Maison de maître + guest rooms",charming:true,feats:["Guest rooms (B&B)","Outbuildings","15 rooms"],bnb:true,erp:false,station:"Valence TGV",carMin:20,hrs:4.6,changes:1,lat:44.75,lng:4.82,url:null},
+ {id:16,commune:"Crest",dept:"26",region:"Drôme · Rhône",price:640000,priceNote:"est",verified:false,m2:600,bd:6,land_ha:0.2,year:1870,typ:"maison_maitre",typLabel:"Maison de maître · 4 sections",charming:true,feats:["600 m²","Garden","Walk to Crest station"],bnb:false,erp:false,station:"Crest",carMin:3,hrs:5.4,changes:1,lat:44.728,lng:5.022,url:null},
+ {id:17,commune:"Béziers",dept:"34",region:"Languedoc · Med line",price:435000,priceNote:"est",verified:false,m2:302,bd:9,land_ha:0.05,year:1880,typ:"maison_maitre",typLabel:"19th-c maison de maître",charming:true,feats:["Marble fireplace","Period mouldings","Town centre"],bnb:false,erp:false,station:"Béziers",carMin:3,hrs:5.0,changes:1,lat:43.344,lng:3.216,url:null},
+ {id:18,commune:"Lézignan-Corbières",dept:"11",region:"Languedoc · Med line",price:565000,priceNote:"est",verified:false,m2:440,bd:9,land_ha:0.2,year:1900,typ:"maison_maitre",typLabel:"1900 mansion, renovated",charming:true,feats:["9 ensuite bedrooms","Renovated","Near station"],bnb:true,erp:false,station:"Lézignan-Corbières",carMin:5,hrs:5.4,changes:1,lat:43.200,lng:2.758,url:null},
+ {id:19,commune:"Cluny",dept:"71",region:"Burgundy",price:470000,priceNote:"est",verified:false,m2:300,bd:4,land_ha:0.3,year:1867,typ:"maison_maitre",typLabel:"1867 maison de maître",charming:true,feats:["Period charm","Wooded garden","Gates of Cluny"],bnb:false,erp:false,station:"Mâcon-Loché TGV",carMin:30,hrs:6.0,changes:1,lat:46.434,lng:4.659,url:null}
 ];
 
 /* ----- charm scoring (era + period features + land), each a 0–100 subscore ----- */
@@ -510,7 +526,7 @@ function initMap(){
 }
 function renderPins(rows){
   const layer=document.getElementById('pinlayer'); if(!layer)return;
-  layer.innerHTML=rows.map(({d})=>{const q=prj(d.lat,d.lng),col=gradeColor(d.hrs),r=d.id===sel?11:8;return `<g class="fpin" data-id="${d.id}" style="cursor:pointer"><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${r+7}" fill="rgba(0,0,0,0)"/><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${r}" fill="${col}" stroke="#fff" stroke-width="${d.id===sel?3:2}"/></g>`;}).join('');
+  layer.innerHTML=rows.map(({d})=>{const q=prj(d.lat,d.lng),col=gradeColor(d.hrs),r=d.id===sel?11:8;const dash=d.verified?'':' stroke-dasharray="3 2"';return `<g class="fpin" data-id="${d.id}" style="cursor:pointer"><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${r+7}" fill="rgba(0,0,0,0)"/><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${r}" fill="${col}" stroke="#fff" stroke-width="${d.id===sel?3:2}"${dash}/></g>`;}).join('');
 }
 
 /* ----- filtering ----- */
@@ -518,6 +534,7 @@ function val(id){return document.getElementById(id).value;}
 function applyFilters(){
   const q=val('f-q').trim().toLowerCase();
   const period=document.getElementById('f-period').checked;
+  const verifOnly=document.getElementById('f-verif').checked;
   const thresh=+val('f-thresh'), maxP=+val('f-price'), maxH=+val('f-hrs');
   const region=val('f-region'), sort=val('f-sort'), bnb=document.getElementById('f-bnb').checked;
   taste.era=document.getElementById('f-era').checked;
@@ -530,6 +547,7 @@ function applyFilters(){
     if(d.hrs>maxH)return false;
     if(region!=='all'&&d.region!==region)return false;
     if(bnb&&!d.bnb)return false;
+    if(verifOnly&&!d.verified)return false;
     if(period&&score<thresh)return false;
     return true;
   });
@@ -542,32 +560,43 @@ function renderList(rows){
   list.innerHTML=rows.map(({d,score})=>{
     const col=gradeColor(d.hrs);
     const chips=(d.feats||[]).slice(0,4).map(f=>`<span class="chip">${esc(f)}</span>`).join('');
+    const price=d.priceNote==='est'?'≈'+eur(d.price)+' <span class="estg">est.</span>':eur(d.price);
+    const vpill=d.verified?'<span class="vpill ok">✓ verified</span>':'<span class="vpill">unverified</span>';
+    const url=d.url||('https://www.google.com/search?q='+encodeURIComponent(d.commune+' '+d.typLabel+' à vendre'));
+    const lbl=d.url?(d.verified?'View listing →':'View listing →'):'Find listing →';
     return `<div class="fcard${d.id===sel?' sel':''}" id="card-${d.id}">`+
       `<div class="fhead"><h3>${esc(d.commune)}</h3><span class="charmbadge" title="Charm score 0–100">♦ ${score}</span></div>`+
-      `<div class="sub">${esc(d.region)} · ${esc(d.typLabel)}${d.year?' · '+d.year:''}</div>`+
-      `<div class="frow3"><b>${eur(d.price)}</b><span class="timepill" style="background:${col}">~${d.hrs}h</span><span class="muted">${d.m2}m² · ${d.bd} bd · ${d.land_ha}ha</span></div>`+
+      `<div class="sub">${esc(d.region)} · ${esc(d.typLabel)}${d.year?' · '+d.year:''} ${vpill}</div>`+
+      `<div class="frow3"><b>${price}</b><span class="timepill" style="background:${col}">~${d.hrs}h</span><span class="muted">${d.m2}m² · ${d.bd} bd · ${d.land_ha}ha</span></div>`+
       `<div class="chips2">${chips}</div>`+
-      `<div class="fcardfoot"><a class="lnk" href="${esc(d.url)}" target="_blank" rel="noopener">View listing →</a><span class="muted small">🚉 ${esc(d.station)} · ${d.carMin}min · ${d.changes} chg</span></div>`+
+      `<div class="fcardfoot"><a class="lnk" href="${esc(url)}" target="_blank" rel="noopener">${lbl}</a><span class="muted small">🚉 ${esc(d.station)} · ${d.carMin}min · ${d.changes} chg</span></div>`+
     `</div>`;
   }).join('');
 }
 function render(){
   const rows=applyFilters();
   const period=document.getElementById('f-period').checked;
+  const nv=LIST.filter(d=>d.verified).length;
   document.getElementById('f-count').textContent=`${rows.length} of ${LIST.length} places${period?' · period filter on':''}`;
   document.getElementById('f-pricev').textContent=eur(+val('f-price'));
   document.getElementById('f-hrsv').textContent=(+val('f-hrs'))+'h';
   document.getElementById('f-threshv').textContent=val('f-thresh');
   renderPins(rows); renderList(rows);
 }
+function fillRegions(){
+  const sel=document.getElementById('f-region'); if(!sel)return;
+  const regs=[...new Set(LIST.map(d=>d.region))].sort();
+  sel.innerHTML='<option value="all">All regions</option>'+regs.map(r=>`<option>${esc(r)}</option>`).join('');
+}
 function wireFind(){
-  initMap();
-  ['f-q','f-period','f-thresh','f-price','f-hrs','f-region','f-sort','f-bnb','f-era','f-char','f-land'].forEach(id=>{
+  initMap(); fillRegions();
+  ['f-q','f-period','f-verif','f-thresh','f-price','f-hrs','f-region','f-sort','f-bnb','f-era','f-char','f-land'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.addEventListener('input',()=>{sel=null;render();});
   });
   document.getElementById('f-reset').addEventListener('click',()=>{
     document.getElementById('f-q').value='';
     document.getElementById('f-period').checked=true;
+    document.getElementById('f-verif').checked=false;
     document.getElementById('f-thresh').value=60;
     document.getElementById('f-price').value=1000000;
     document.getElementById('f-hrs').value=12;
