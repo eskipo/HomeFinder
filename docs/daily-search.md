@@ -20,6 +20,9 @@ committed straight to the working branch. Never overwrite or edit verified data.
    - Burgundy / Mâconnais (71): Mâcon, Tournus, Cluny, Chalon
    - Occitanie · Tarn (81) and Gers (32)
    Query terms: `maison de maître | château | chartreuse à vendre <area> <price> pierre caractère`.
+   Also query the **curation-fed broker portals** (see "Sources" below) by name +
+   corridor, e.g. `Leggett Prestige château <region> under 700000`, to catch the same
+   listings the Instagram accounts repost.
 4. **For each candidate that is NOT already in `LIST`** (match on commune + approx price),
    extract what the search result gives: `commune, dept, region, price, m2, bd,
    land_ha, year (era), typ/typLabel, feats[], station, carMin, hrs, changes, lat, lng, url`.
@@ -39,6 +42,21 @@ committed straight to the working branch. Never overwrite or edit verified data.
    with message `Daily listing search — <date>` whose body lists each addition (commune,
    price, region, why it passed), then push the branch.
    **If nothing new**: do not commit; end the run noting "no new listings today".
+
+## Sources (Instagram-derived, but mined compliantly)
+We do **not** scrape Instagram — it blocks automated access (403/login wall) and it
+violates their ToS. The popular property accounts are only a curation layer; mine the
+brokers they repost instead. Run the corridor queries above against these portals:
+
+- Cabinet Le Nail · Patrice Besse · Leggett Prestige · Sifex · French-Property.com
+- Belles Demeures · Green-Acres · Ma-Propriété · BellesPierres · Le Figaro Propriétés
+- Curation accounts to watch for *which brokers are hot* (browse manually, don't scrape):
+  @dreamfrenchproperties and similar. When the owner pastes an Instagram post's caption
+  or its outbound listing link into a session, add that specific property directly.
+
+If you ever want true Instagram data, the only compliant route is the official
+**Instagram Graph API** hashtag search — which needs a Business/Creator account plus app
+review and returns only limited recent media. It is out of scope for this routine.
 
 ## Guardrails
 - Portals (ParuVendu, French-Property, etc.) return 403 to automated fetch — rely on
