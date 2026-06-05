@@ -4,9 +4,9 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="theme-color" content="#16607e"/>
-<meta name="description" content="Compare rail-reachable cheap-château regions from a Monaco/Riviera base — regions, decision paths, operating rules, real listings, and French mortgage scenarios. Works without JavaScript."/>
+<meta name="description" content="Live search, filter and map of rail-reachable cheap-château listings from a Monaco/Riviera base, with a charm score, the regions/rules context, and a French mortgage calculator."/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%B0%3C/text%3E%3C/svg%3E"/>
-<title>Château by Train — Riviera base, château business</title>
+<title>Château by Train — find &amp; finance</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -112,52 +112,94 @@
   button.estbtn:hover{filter:brightness(1.06);}
   nav button:focus-visible{outline:2px solid var(--clay);outline-offset:-2px;}
   .maperr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font:600 14px/1.55 "Hanken Grotesk",system-ui,sans-serif;color:var(--sea-deep);background:var(--cream);}
-
-  /* ---- no-JavaScript radio tabs (work in any HTML viewer) ---- */
+  /* ---- nav: CSS radio tabs ---- */
   .tabradio{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;}
   nav label{flex:0 0 auto;font-family:"Hanken Grotesk",sans-serif;font-weight:700;font-size:13px;color:var(--muted);padding:9px 13px;border-radius:9px 9px 0 0;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
-  #t-map:checked~main #tab-map,#t-regions:checked~main #tab-regions,#t-chateaux:checked~main #tab-chateaux,#t-decision:checked~main #tab-decision,#t-rules:checked~main #tab-rules,#t-finance:checked~main #tab-finance{display:block;}
-  #t-map:checked~header nav label[for=t-map],#t-regions:checked~header nav label[for=t-regions],#t-chateaux:checked~header nav label[for=t-chateaux],#t-decision:checked~header nav label[for=t-decision],#t-rules:checked~header nav label[for=t-rules],#t-finance:checked~header nav label[for=t-finance]{color:var(--clay-deep);border-bottom-color:var(--clay);background:var(--cream);}
-  .tabradio:focus-visible~header nav label[for=t-map]{outline:2px solid var(--clay);outline-offset:-2px;}
-  .mapwrap{position:absolute;inset:0;overflow:auto;background:#aadaff;-webkit-overflow-scrolling:touch;}
-  .mapnote{padding:8px 12px;font:600 11px/1.45 "Hanken Grotesk",system-ui,sans-serif;color:#0e4257;background:rgba(251,247,238,.94);border-bottom:1px solid var(--line);}
+  #t-find:checked~main #tab-find,#t-regions:checked~main #tab-regions,#t-decision:checked~main #tab-decision,#t-rules:checked~main #tab-rules,#t-finance:checked~main #tab-finance{display:block;}
+  #t-find:checked~header nav label[for=t-find],#t-regions:checked~header nav label[for=t-regions],#t-decision:checked~header nav label[for=t-decision],#t-rules:checked~header nav label[for=t-rules],#t-finance:checked~header nav label[for=t-finance]{color:var(--clay-deep);border-bottom-color:var(--clay);background:var(--cream);}
+  /* ---- finder ---- */
+  #tab-find{padding:0;}
+  .filters{position:sticky;top:0;z-index:6;background:var(--cream);padding:12px 14px 10px;border-bottom:1px solid var(--line);box-shadow:0 4px 10px rgba(20,15,8,.05);}
+  .filters input[type=search]{width:100%;font-family:inherit;font-size:14px;font-weight:600;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);margin-bottom:9px;}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;margin-bottom:7px;}
+  .frow label,.threshlab{display:flex;flex-direction:column;gap:3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
+  .frow label .v,.threshlab .v{float:none;color:var(--clay-deep);}
+  .frow select{font-family:inherit;font-size:13px;font-weight:600;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);}
+  .frow input[type=range],.threshlab input[type=range]{width:100%;accent-color:var(--clay);}
+  .threshlab{margin-bottom:8px;}
+  .togrow{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;}
+  .tog{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;}
+  .tog input{accent-color:var(--clay);width:16px;height:16px;}
+  .chips3{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .chl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
+  .chip2{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--clay-deep);background:#efe6d4;padding:4px 9px;border-radius:20px;cursor:pointer;}
+  .chip2 input{accent-color:var(--clay);}
+  .resetbtn{margin-left:auto;font-family:inherit;font-size:11px;font-weight:700;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer;}
+  .fcount{margin-top:9px;font-size:11px;font-weight:700;color:var(--clay-deep);letter-spacing:.02em;}
+  .findmap{height:300px;position:relative;background:#aadaff;border-bottom:1px solid var(--line);overflow:hidden;}
+  .findmap svg{display:block;}
+  .flist{padding:12px 14px 40px;}
+  .fcard{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:10px;box-shadow:0 2px 8px rgba(20,15,8,.04);}
+  .fcard.sel{outline:2px solid var(--clay);outline-offset:1px;}
+  .fhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+  .fcard h3{font-family:"Fraunces",serif;font-weight:600;font-size:15.5px;margin:0;}
+  .charmbadge{flex:0 0 auto;font-size:11px;font-weight:700;color:#3f7d52;background:#e7efe0;padding:3px 8px;border-radius:20px;}
+  .fcard .sub{font-size:11px;color:var(--muted);margin:2px 0 6px;}
+  .frow3{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:12.5px;}
+  .frow3 b{font-family:"Fraunces",serif;font-size:15px;}
+  .muted{color:var(--muted);} .small{font-size:10px;}
+  .chips2{margin-top:6px;}
+  .chip{display:inline-block;font-size:10px;font-weight:700;background:#efe6d4;color:var(--clay-deep);padding:2px 7px;border-radius:20px;margin:3px 3px 0 0;}
+  .fcardfoot{margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+  a.lnk{color:var(--clay-deep);font-weight:700;text-decoration:none;font-size:12px;}
+  a.lnk:hover{text-decoration:underline;}
+  .timepill{display:inline-block;color:#fff;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:20px;}
 </style>
 </head>
 <body>
 <div id="app">
-  <input class="tabradio" type="radio" name="tab" id="t-map" checked>
+  <input class="tabradio" type="radio" name="tab" id="t-find" checked>
   <input class="tabradio" type="radio" name="tab" id="t-regions">
-  <input class="tabradio" type="radio" name="tab" id="t-chateaux">
   <input class="tabradio" type="radio" name="tab" id="t-decision">
   <input class="tabradio" type="radio" name="tab" id="t-rules">
   <input class="tabradio" type="radio" name="tab" id="t-finance">
   <header>
     <p class="kicker">Retirement plan · rent on the Riviera, own the château</p>
-    <h1>Château <em>by train</em> — the factors, side by side</h1>
+    <h1>Château <em>by train</em> — find &amp; finance</h1>
     <nav role="tablist" aria-label="Sections">
-      <label for="t-map">🚆 Map &amp; routes</label>
+      <label for="t-find">🔎 Find</label>
       <label for="t-regions">Regions</label>
-      <label for="t-chateaux">🏰 Châteaux</label>
       <label for="t-decision">The decision</label>
       <label for="t-rules">The rules</label>
-      <label for="t-finance">💶 Buy &amp; finance</label>
+      <label for="t-finance">💶 Finance</label>
     </nav>
   </header>
   <main>
-    <section class="tab" id="tab-map">
-      <div class="mapwrap">
-        <div class="mapnote">Simplified map coloured by rail time from Monaco (green ≈ 2h → red ≈ 10h+). Tap a château dot to open its listing.</div>
-        <svg viewBox="0 0 1000 1090" width="100%" style="display:block" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><rect width="1000" height="1090" fill="#aadaff"/><path d="M576.1,29.3 L697.8,119.5 L834.8,215.7 L980.4,275.4 L941.3,434.8 L888.4,504.0 L827.5,588.4 L884.1,632.9 L898.6,714.9 L888.4,813.4 L946.4,856.8 L930.4,884.9 L852.9,954.0 L779.0,936.5 L684.8,908.3 L612.3,1034.9 L536.2,1049.0 L439.1,1009.1 L290.6,940.0 L300.7,797.0 L314.5,671.6 L304.3,584.8 L234.8,504.0 L206.5,444.2 L44.9,382.1 L81.9,307.1 L257.2,314.1 L274.6,185.2 L404.3,187.5 L504.3,65.6 L576.1,29.3 Z" fill="#fbf7ee" stroke="#cbb994" stroke-width="2"/><line x1="918.1" y1="890.8" x2="900.0" y2="908.3" stroke="hsl(130,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="900.0" y1="908.3" x2="821.0" y2="958.7" stroke="hsl(130,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="821.0" y1="958.7" x2="780.4" y2="937.6" stroke="hsl(128,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="780.4" y1="937.6" x2="786.2" y2="910.7" stroke="hsl(119,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="786.2" y1="910.7" x2="739.9" y2="861.5" stroke="hsl(111,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="739.9" y1="861.5" x2="745.7" y2="746.6" stroke="hsl(101,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="745.7" y1="746.6" x2="742.0" y2="649.3" stroke="hsl(93,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="742.0" y1="649.3" x2="756.5" y2="466.5" stroke="hsl(76,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="756.5" y1="466.5" x2="561.6" y2="287.2" stroke="hsl(66,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="918.1" y1="890.8" x2="942.8" y2="880.2" stroke="hsl(130,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="780.4" y1="937.6" x2="707.2" y2="874.3" stroke="hsl(111,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="707.2" y1="874.3" x2="672.5" y2="901.3" stroke="hsl(94,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="672.5" y1="901.3" x2="624.6" y2="932.9" stroke="hsl(85,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="624.6" y1="932.9" x2="608.7" y2="951.7" stroke="hsl(79,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="608.7" y1="951.7" x2="601.4" y2="1008.0" stroke="hsl(71,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="608.7" y1="951.7" x2="561.6" y2="948.2" stroke="hsl(71,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="561.6" y1="948.2" x2="495.7" y2="902.5" stroke="hsl(58,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="495.7" y1="902.5" x2="436.2" y2="832.2" stroke="hsl(45,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="436.2" y1="832.2" x2="349.3" y2="757.1" stroke="hsl(24,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="561.6" y1="287.2" x2="529.0" y2="398.5" stroke="hsl(59,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="529.0" y1="398.5" x2="441.3" y2="458.3" stroke="hsl(41,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="441.3" y1="458.3" x2="415.9" y2="553.2" stroke="hsl(32,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="415.9" y1="553.2" x2="402.9" y2="662.2" stroke="hsl(28,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="402.9" y1="662.2" x2="349.3" y2="757.1" stroke="hsl(18,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="349.3" y1="757.1" x2="315.2" y2="890.8" stroke="hsl(8,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="315.2" y1="890.8" x2="284.1" y2="915.4" stroke="hsl(4,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="349.3" y1="757.1" x2="436.2" y2="832.2" stroke="hsl(24,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="436.2" y1="832.2" x2="495.7" y2="902.5" stroke="hsl(45,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="495.7" y1="902.5" x2="396.4" y2="945.8" stroke="hsl(39,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="396.4" y1="945.8" x2="364.5" y2="937.6" stroke="hsl(24,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="364.5" y1="937.6" x2="315.2" y2="890.8" stroke="hsl(15,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="561.6" y1="287.2" x2="405.8" y2="386.8" stroke="hsl(56,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="405.8" y1="386.8" x2="335.5" y2="378.6" stroke="hsl(40,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="335.5" y1="378.6" x2="269.6" y2="373.9" stroke="hsl(31,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="269.6" y1="373.9" x2="190.6" y2="327.0" stroke="hsl(18,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="190.6" y1="327.0" x2="65.9" y2="341.1" stroke="hsl(9,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="269.6" y1="373.9" x2="191.3" y2="426.6" stroke="hsl(16,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="191.3" y1="426.6" x2="147.1" y2="416.1" stroke="hsl(11,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="147.1" y1="416.1" x2="94.2" y2="386.8" stroke="hsl(10,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="405.8" y1="386.8" x2="351.4" y2="448.9" stroke="hsl(39,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="351.4" y1="448.9" x2="279.0" y2="478.2" stroke="hsl(29,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="279.0" y1="478.2" x2="269.6" y2="373.9" stroke="hsl(24,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="561.6" y1="287.2" x2="471.0" y2="218.0" stroke="hsl(54,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="471.0" y1="218.0" x2="399.3" y2="212.1" stroke="hsl(33,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="561.6" y1="287.2" x2="364.5" y2="248.5" stroke="hsl(50,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="364.5" y1="248.5" x2="273.9" y2="194.6" stroke="hsl(20,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="364.5" y1="248.5" x2="292.8" y2="305.9" stroke="hsl(23,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="292.8" y1="305.9" x2="269.6" y2="373.9" stroke="hsl(20,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="561.6" y1="287.2" x2="613.0" y2="78.5" stroke="hsl(55,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="613.0" y1="78.5" x2="526.1" y2="41.0" stroke="hsl(33,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="561.6" y1="287.2" x2="683.3" y2="239.1" stroke="hsl(59,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="683.3" y1="239.1" x2="839.1" y2="255.5" stroke="hsl(41,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="839.1" y1="255.5" x2="952.9" y2="320.0" stroke="hsl(34,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="683.3" y1="239.1" x2="653.6" y2="203.9" stroke="hsl(43,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="952.9" y1="320.0" x2="923.2" y2="416.1" stroke="hsl(42,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="923.2" y1="416.1" x2="888.4" y2="429.0" stroke="hsl(52,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="888.4" y1="429.0" x2="827.5" y2="475.8" stroke="hsl(56,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="827.5" y1="475.8" x2="756.5" y2="466.5" stroke="hsl(60,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="756.5" y1="466.5" x2="742.0" y2="649.3" stroke="hsl(76,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="561.6" y1="287.2" x2="620.3" y2="505.2" stroke="hsl(54,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="620.3" y1="505.2" x2="614.5" y2="647.0" stroke="hsl(36,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="561.6" y1="287.2" x2="529.0" y2="398.5" stroke="hsl(59,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="529.0" y1="398.5" x2="565.2" y2="494.6" stroke="hsl(44,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="565.2" y1="494.6" x2="482.6" y2="641.1" stroke="hsl(34,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="482.6" y1="641.1" x2="502.2" y2="719.6" stroke="hsl(24,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="502.2" y1="719.6" x2="495.7" y2="802.8" stroke="hsl(28,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="495.7" y1="802.8" x2="495.7" y2="902.5" stroke="hsl(46,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="349.3" y1="757.1" x2="443.5" y2="717.3" stroke="hsl(11,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="443.5" y1="717.3" x2="502.2" y2="719.6" stroke="hsl(15,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="742.0" y1="649.3" x2="820.3" y2="672.8" stroke="hsl(75,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="820.3" y1="672.8" x2="835.5" y2="632.9" stroke="hsl(54,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="742.0" y1="649.3" x2="805.8" y2="716.1" stroke="hsl(77,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><line x1="349.3" y1="757.1" x2="426.1" y2="756.0" stroke="hsl(0,62%,44%)" stroke-width="3.4" stroke-linecap="round"/><g><title>Riviera base (the club)</title><circle cx="929.1" cy="884.7" r="17" fill="#c39438" stroke="#fff" stroke-width="2.6"/><text x="929.1" y="889.7" text-anchor="middle" font-size="15" font-weight="700" fill="#fff" font-family="Hanken Grotesk,sans-serif">A</text></g><g><title>Occitanie (Tarn)</title><circle cx="495.7" cy="902.5" r="14" fill="hsl(52,62%,44%)" stroke="#fff" stroke-width="2.6"/><text x="495.7" y="907.5" text-anchor="middle" font-size="15" font-weight="700" fill="#fff" font-family="Hanken Grotesk,sans-serif">1</text></g><g><title>Loire Valley</title><circle cx="441.3" cy="458.3" r="14" fill="hsl(34,62%,44%)" stroke="#fff" stroke-width="2.6"/><text x="441.3" y="463.3" text-anchor="middle" font-size="15" font-weight="700" fill="#fff" font-family="Hanken Grotesk,sans-serif">2</text></g><g><title>Dordogne / Périgord</title><circle cx="426.1" cy="756.0" r="14" fill="hsl(0,62%,44%)" stroke="#fff" stroke-width="2.6"/><text x="426.1" y="761.0" text-anchor="middle" font-size="15" font-weight="700" fill="#fff" font-family="Hanken Grotesk,sans-serif">3</text></g><g><title>Hauts-de-France</title><circle cx="653.6" cy="203.9" r="14" fill="hsl(37,62%,44%)" stroke="#fff" stroke-width="2.6"/><text x="653.6" y="208.9" text-anchor="middle" font-size="15" font-weight="700" fill="#fff" font-family="Hanken Grotesk,sans-serif">4</text></g><g><title>Brittany (Morbihan)</title><circle cx="191.3" cy="426.6" r="14" fill="hsl(8,62%,44%)" stroke="#fff" stroke-width="2.6"/><text x="191.3" y="431.6" text-anchor="middle" font-size="15" font-weight="700" fill="#fff" font-family="Hanken Grotesk,sans-serif">5</text></g><g><title>Normandy</title><circle cx="292.8" cy="305.9" r="14" fill="hsl(16,62%,44%)" stroke="#fff" stroke-width="2.6"/><text x="292.8" y="310.9" text-anchor="middle" font-size="15" font-weight="700" fill="#fff" font-family="Hanken Grotesk,sans-serif">6</text></g><a href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288430438A1KIVHPR000" target="_blank" rel="noopener"><title>Saint-Paul-Cap-de-Joux (81) · €546,000 · ~8h</title><circle cx="534.6" cy="897.6" r="8" fill="hsl(33,62%,44%)" stroke="#fff" stroke-width="2"/></a><a href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283633850A1KIVHPR000" target="_blank" rel="noopener"><title>Rivières (81) · €799,000 · ~7.9h</title><circle cx="532.6" cy="861.2" r="8" fill="hsl(34,62%,44%)" stroke="#fff" stroke-width="2"/></a><a href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1282317855A1KIVHPR000" target="_blank" rel="noopener"><title>Gaillac (81) · €699,000 · ~7.9h</title><circle cx="528.8" cy="867.2" r="8" fill="hsl(34,62%,44%)" stroke="#fff" stroke-width="2"/></a><a href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283550246A1KIVHPR000" target="_blank" rel="noopener"><title>Rabastens (81) · €437,000 · ~7.6h</title><circle cx="516.5" cy="876.2" r="8" fill="hsl(39,62%,44%)" stroke="#fff" stroke-width="2"/></a><a href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283124483A1KIVHPR000" target="_blank" rel="noopener"><title>Réalmont (81) · €320,000 · ~8.5h</title><circle cx="550.0" cy="881.6" r="8" fill="hsl(24,62%,44%)" stroke="#fff" stroke-width="2"/></a><a href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290196619A1KIVHPR000" target="_blank" rel="noopener"><title>Lavaur (81) · €300,000 · ~7.6h</title><circle cx="523.4" cy="890.9" r="8" fill="hsl(39,62%,44%)" stroke="#fff" stroke-width="2"/></a><a href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1287661626A1KIVHPR000" target="_blank" rel="noopener"><title>Chanos-Curson (26) · €750,000 · ~4.2h</title><circle cx="747.9" cy="730.7" r="8" fill="hsl(94,62%,44%)" stroke="#fff" stroke-width="2"/></a><a href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290828688A1KIVHPR000" target="_blank" rel="noopener"><title>Mirabel-et-Blacons (26) · €480,000 · ~5.4h</title><circle cx="758.9" cy="769.7" r="8" fill="hsl(75,62%,44%)" stroke="#fff" stroke-width="2"/></a><a href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1286158024A1KIVHPR000" target="_blank" rel="noopener"><title>Chalon-sur-Saône / Saint-Marcel (71) · €558,000 · ~6.2h</title><circle cx="744.4" cy="528.9" r="8" fill="hsl(62,62%,44%)" stroke="#fff" stroke-width="2"/></a><a href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1284454175A1KIVHPR000" target="_blank" rel="noopener"><title>Verdun-sur-le-Doubs (71) · €920,000 · ~6.3h</title><circle cx="755.2" cy="515.8" r="8" fill="hsl(60,62%,44%)" stroke="#fff" stroke-width="2"/></a><a href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288336374A1KIVHPR000" target="_blank" rel="noopener"><title>Étang-sur-Arroux (71) · €321,000 · ~7.5h</title><circle cx="695.0" cy="519.9" r="8" fill="hsl(41,62%,44%)" stroke="#fff" stroke-width="2"/></a></svg>
-      </div>
-      <div class="maplegend">
-        <b>Time from Monaco</b>
-        <span class="grad"></span>
-        <span class="gradlab">~2h · near</span><span class="gradlab r">~10h+ · far</span>
-        <div class="lgrow" style="margin-top:6px;font-size:10px;color:var(--muted)">Every rail line &amp; pin coloured by time</div>
-        <div class="lgrow"><span class="dotg"></span>Your rental base · A</div>
-        <div class="lgrow"><span class="candkey"></span>Château candidate — tap to open listing</div>
-      </div>
-    </section>
+    <section class="tab" id="tab-find"><div class="filters">
+  <input id="f-q" type="search" placeholder="🔎 Search commune, area or feature…" autocomplete="off">
+  <div class="frow">
+    <label>Max price <span class="v" id="f-pricev">€1M</span><input id="f-price" type="range" min="200000" max="1000000" step="20000" value="1000000"></label>
+    <label>Max rail time <span class="v" id="f-hrsv">12h</span><input id="f-hrs" type="range" min="4" max="12" step="0.5" value="12"></label>
+    <label>Region<select id="f-region"><option value="all">All regions</option><option>Occitanie (Tarn)</option><option>Drôme</option><option>Burgundy</option></select></label>
+    <label>Sort by<select id="f-sort"><option value="hrs">Rail time</option><option value="price">Price</option><option value="charm">Charm</option></select></label>
+  </div>
+  <div class="togrow">
+    <label class="tog"><input type="checkbox" id="f-period" checked> Period character only</label>
+    <label class="tog"><input type="checkbox" id="f-bnb"> B&amp;B-ready</label>
+  </div>
+  <label class="threshlab">Charm threshold <span class="v" id="f-threshv">60</span><input id="f-thresh" type="range" min="0" max="100" step="5" value="60"></label>
+  <div class="chips3"><span class="chl">Charm weighs:</span>
+    <label class="chip2"><input type="checkbox" id="f-era" checked> Era</label>
+    <label class="chip2"><input type="checkbox" id="f-char" checked> Features</label>
+    <label class="chip2"><input type="checkbox" id="f-land" checked> Land</label>
+    <button id="f-reset" type="button" class="resetbtn">Reset</button>
+  </div>
+  <div id="f-count" class="fcount">—</div>
+</div>
+<div id="findmap" class="findmap"></div>
+<div id="f-list" class="flist"></div>
+<noscript><p class="foot" style="margin:12px 16px">Live search needs JavaScript — open this file in a browser. The Regions, decision and rules tabs work without it.</p></noscript>
+</section>
     <section class="tab pad" id="tab-regions">
       <h2>Where the cheap châteaux are — and how reachable</h2>
       <p class="lede">The discount lives where there's rural depopulation and distance, so none are near the coast. Ordered by our blend of rail, B&amp;B market and price. <b>Re-verified June 2026</b> against live SNCF/booking timetables — fastest typical one-way from Nice: Paris ≈ <b>5h40</b> (direct TGV), Toulouse ≈ <b>6h48</b> (1 change via Marseille), Bordeaux ≈ <b>9h20</b> (1 change). Times below are best-case; most routes need 1–2 changes and run longer off-peak.</p>
@@ -172,13 +214,6 @@
       </table>
       <p class="foot">Price bands are from the listings you shared (cheappropertyfrance / housstyler) plus regional norms; treat as indicative, not quotes. <b>The honest tension, after re-checking the timetables:</b> the strongest B&amp;B market (Dordogne) is the hardest to reach (~11h, 2 changes), and Occitanie — the sunniest, best of these six — still needs a regional leg to the Tarn (~8h). The genuine rail winners aren't in this six at all: the <b>Drôme/Rhône corridor</b> (Valence ~4h) and <b>Burgundy</b> (Chalon ~6h) sit right on the Paris–Mediterranean TGV spine. They're on the map and the Châteaux tab as the fastest-rail candidates.</p>
     </section>
-    <section class="tab pad" id="tab-chateaux"><h2>Château candidates — the actual listings</h2>
-      <p class="lede">Real ParuVendu listings (verified June 2026) in the rail-reachable sweet spots — the <b>Drôme</b> (Rhône TGV line), <b>Burgundy</b> (Paris–Lyon spine) and the <b>Tarn</b> (Occitanie). Sorted by rail time from Nice; tap a listing link to open it.</p>
-      <table>
-        <thead><tr><th>Commune</th><th>Price</th><th>Size</th><th>Rail time</th><th>Link</th></tr></thead>
-        <tbody><tr><td><b>Chanos-Curson (26)</b><br><span style="color:var(--muted)">Drôme · Rhône TGV line</span></td><td><b>€750,000</b></td><td>400 m² · 11 rooms · 1.15 ha</td><td><span class="timepill" style="background:hsl(94,62%,44%)">~4.2h</span><br><span style="color:var(--muted);font-size:10px">🚉 Valence TGV · 15min</span></td><td><a class="lnk" href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1287661626A1KIVHPR000" target="_blank" rel="noopener">Listing →</a></td></tr><tr><td><b>Mirabel-et-Blacons (26)</b><br><span style="color:var(--muted)">Drôme · Rhône line</span></td><td><b>€480,000</b></td><td>377 m² · 8 rooms · 1,400 m²</td><td><span class="timepill" style="background:hsl(75,62%,44%)">~5.4h</span><br><span style="color:var(--muted);font-size:10px">🚉 Crest · 10min</span></td><td><a class="lnk" href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290828688A1KIVHPR000" target="_blank" rel="noopener">Listing →</a></td></tr><tr><td><b>Chalon-sur-Saône / Saint-Marcel (71)</b><br><span style="color:var(--muted)">Burgundy · TGV spine</span></td><td><b>€558,000</b></td><td>278 m² · 8 rooms · 3,300 m²</td><td><span class="timepill" style="background:hsl(62,62%,44%)">~6.2h</span><br><span style="color:var(--muted);font-size:10px">🚉 Chalon-sur-Saône TGV · 8min</span></td><td><a class="lnk" href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1286158024A1KIVHPR000" target="_blank" rel="noopener">Listing →</a></td></tr><tr><td><b>Verdun-sur-le-Doubs (71)</b><br><span style="color:var(--muted)">Burgundy</span></td><td><b>€920,000</b></td><td>460 m² · 14 rooms · 9 bd</td><td><span class="timepill" style="background:hsl(60,62%,44%)">~6.3h</span><br><span style="color:var(--muted);font-size:10px">🚉 Chagny / Chalon · 20min</span></td><td><a class="lnk" href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1284454175A1KIVHPR000" target="_blank" rel="noopener">Listing →</a></td></tr><tr><td><b>Étang-sur-Arroux (71)</b><br><span style="color:var(--muted)">Burgundy · Morvan edge</span></td><td><b>€321,000</b></td><td>317 m² · 10 rooms · 3 dwellings</td><td><span class="timepill" style="background:hsl(41,62%,44%)">~7.5h</span><br><span style="color:var(--muted);font-size:10px">🚉 Étang-sur-Arroux (TER) · 5min</span></td><td><a class="lnk" href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288336374A1KIVHPR000" target="_blank" rel="noopener">Listing →</a></td></tr><tr><td><b>Rabastens (81)</b><br><span style="color:var(--muted)">Tarn · Occitanie</span></td><td><b>€437,000</b></td><td>295 m² · 8 rooms · 5,680 m²</td><td><span class="timepill" style="background:hsl(39,62%,44%)">~7.6h</span><br><span style="color:var(--muted);font-size:10px">🚉 Rabastens-Couffouleng · 5min</span></td><td><a class="lnk" href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283550246A1KIVHPR000" target="_blank" rel="noopener">Listing →</a></td></tr><tr><td><b>Lavaur (81)</b><br><span style="color:var(--muted)">Tarn · Occitanie</span></td><td><b>€300,000</b></td><td>302 m² · 6 bd · 5,500 m²</td><td><span class="timepill" style="background:hsl(39,62%,44%)">~7.6h</span><br><span style="color:var(--muted);font-size:10px">🚉 Lavaur · 8min</span></td><td><a class="lnk" href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290196619A1KIVHPR000" target="_blank" rel="noopener">Listing →</a></td></tr><tr><td><b>Rivières (81)</b><br><span style="color:var(--muted)">Tarn · Occitanie</span></td><td><b>€799,000</b></td><td>374 m² · 10 rooms · 2.9 ha</td><td><span class="timepill" style="background:hsl(34,62%,44%)">~7.9h</span><br><span style="color:var(--muted);font-size:10px">🚉 Gaillac · 6min</span></td><td><a class="lnk" href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283633850A1KIVHPR000" target="_blank" rel="noopener">Listing →</a></td></tr><tr><td><b>Gaillac (81)</b><br><span style="color:var(--muted)">Tarn · Occitanie</span></td><td><b>€699,000</b></td><td>235 m² + dépendances · 22 ha</td><td><span class="timepill" style="background:hsl(34,62%,44%)">~7.9h</span><br><span style="color:var(--muted);font-size:10px">🚉 Gaillac · 7min</span></td><td><a class="lnk" href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1282317855A1KIVHPR000" target="_blank" rel="noopener">Listing →</a></td></tr><tr><td><b>Saint-Paul-Cap-de-Joux (81)</b><br><span style="color:var(--muted)">Tarn · Occitanie</span></td><td><b>€546,000</b></td><td>431 m² · 13 rooms · 5,691 m²</td><td><span class="timepill" style="background:hsl(33,62%,44%)">~8h</span><br><span style="color:var(--muted);font-size:10px">🚉 Saint-Paul-Cap-de-Joux–Damiatte · 10min</span></td><td><a class="lnk" href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288430438A1KIVHPR000" target="_blank" rel="noopener">Listing →</a></td></tr><tr><td><b>Réalmont (81)</b><br><span style="color:var(--muted)">Tarn · Occitanie</span></td><td><b>€320,000</b></td><td>328 m² · 10 rooms · &gt;1 ha park</td><td><span class="timepill" style="background:hsl(24,62%,44%)">~8.5h</span><br><span style="color:var(--muted);font-size:10px">🚉 Albi-Ville · 20min</span></td><td><a class="lnk" href="https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283124483A1KIVHPR000" target="_blank" rel="noopener">Listing →</a></td></tr></tbody>
-      </table>
-      <p class="foot">Rail time is the fastest typical one-way service from Nice to the nearest station (re-verified June 2026); most routes need 1–2 changes and run longer off-peak. Listings are third-party and move fast — confirm price, ERP/DPE status and PLU zoning before committing. Not advice; not quotes.</p></section>
     <section class="tab pad" id="tab-decision">
       <h2>One fork, three honest shapes</h2>
       <p class="lede">A château near the Monte-Carlo Country Club doesn't exist at these prices — Alpes-Maritimes châteaux start near <b>€1.55M</b> and climb into the millions. So the club and the château pull apart. Pick which constraint flexes.</p>
@@ -199,14 +234,30 @@
       <div class="card"><div class="h"><h3>Tax footing</h3><span class="badge best">Treaty in your favour</span></div><p>Unlike Monaco, France has a US tax treaty that prevents double taxation and can assign a US government pension (TSP) to the US side — confirm with a cross-border CPA. Operate via the chambres d'hôtes or meublé/LMNP regime; budget ERP-compliance capex separately.</p></div>
       <p class="foot">Rules verified via French sources June 2026 (Loi Le Meur, loi Climat &amp; Résilience, Code du tourisme). Confirm the specifics for the exact commune and property before committing — local PLUs and the April 2026 reform talk can shift details.</p>
     </section>
-    <section class="tab pad" id="tab-finance"><h2>French mortgage — example scenarios</h2>
-      <p class="lede">A <b>US non-resident retiree</b> profile: 30% deposit, 4% fixed over 20 yr, 0.5%/yr insurance, 2%/yr upkeep. Static estimates below — open this file in a regular browser for the live slider calculator.</p>
-      <table>
-        <thead><tr><th>Price</th><th>Loan (70%)</th><th>Mortgage P+I+ins</th><th>Upkeep</th><th>All-in / mo</th><th>Cash up front</th></tr></thead>
-        <tbody><tr><td><b>€320,000</b></td><td>€224,000</td><td>€1,451/mo</td><td>€6,400/yr</td><td><b>€1,984/mo</b></td><td>€123,200</td></tr><tr><td><b>€500,000</b></td><td>€350,000</td><td>€2,267/mo</td><td>€10,000/yr</td><td><b>€3,100/mo</b></td><td>€192,500</td></tr><tr><td><b>€750,000</b></td><td>€525,000</td><td>€3,400/mo</td><td>€15,000/yr</td><td><b>€4,650/mo</b></td><td>€288,750</td></tr><tr><td><b>€920,000</b></td><td>€644,000</td><td>€4,171/mo</td><td>€18,400/yr</td><td><b>€5,704/mo</b></td><td>€354,200</td></tr></tbody>
-      </table>
-      <p class="foot">All-in monthly = mortgage principal+interest + insurance + upkeep/12. Cash up front = 30% deposit + ~7.5% notaire + ~1% broker. <b>Excludes</b> taxe foncière and any one-off ERP/DPE compliance capex — budget those separately. Non-resident rates early 2026 run ~3.5–4.25%; insurance rises sharply with age.</p>
-      <h2 style="margin-top:18px">Rules for foreign buyers</h2>
+    <section class="tab pad" id="tab-finance"><h2>French mortgage calculator</h2>
+      <p class="lede">Sliders default to a <b>US non-resident retiree</b> profile (~30% deposit, ~4% fixed, shorter term, higher insurance). Live estimate — not a lending offer.</p>
+      <div class="calc">
+        <div class="field full"><label>Property price (€)</label><input type="number" id="c-price" value="500000" step="10000" min="50000"></div>
+        <div class="field"><label>Deposit <span class="v" id="v-dep">30%</span></label><input type="range" id="c-dep" min="10" max="60" step="5" value="30"></div>
+        <div class="field"><label>Rate (fixed) <span class="v" id="v-rate">4.00%</span></label><input type="range" id="c-rate" min="2" max="6" step="0.05" value="4"></div>
+        <div class="field"><label>Term <span class="v" id="v-term">20 yr</span></label><input type="range" id="c-term" min="5" max="25" step="1" value="20"></div>
+        <div class="field"><label>Insurance / yr <span class="v" id="v-ins">0.50%</span></label><input type="range" id="c-ins" min="0.1" max="1.2" step="0.05" value="0.5"></div>
+        <div class="field"><label>Notaire fees <span class="v" id="v-not">7.5%</span></label><input type="range" id="c-not" min="2" max="9" step="0.1" value="7.5"></div>
+        <div class="field"><label>Broker fee <span class="v" id="v-brok">1.0%</span></label><input type="range" id="c-brok" min="0" max="3" step="0.1" value="1"></div>
+        <div class="field full"><label>Annual upkeep <span class="v" id="v-up">2.00% / yr</span></label><input type="range" id="c-up" min="0" max="5" step="0.25" value="2"></div>
+      </div>
+      <div class="out">
+        <div class="outcard hero"><small>All-in monthly carry (incl. upkeep)</small><b id="o-carry">—</b></div>
+        <div class="outcard"><small>Mortgage P+I + insurance</small><b id="o-tot">—</b></div>
+        <div class="outcard"><small>Annual upkeep</small><b id="o-upk">—</b></div>
+        <div class="outcard"><small>Loan amount</small><b id="o-loan">—</b></div>
+        <div class="outcard"><small>Cash needed up front*</small><b id="o-up">—</b></div>
+        <div class="outcard"><small>Of which: principal + interest</small><b id="o-pi">—</b></div>
+        <div class="outcard"><small>Of which: insurance</small><b id="o-ins">—</b></div>
+        <div class="outcard"><small>Total interest over term</small><b id="o-int">—</b></div>
+      </div>
+      <p class="foot">*Cash up front = deposit + notaire + broker (sliders above). Upkeep is a rule-of-thumb on value (1–3%/yr typical, higher for a château); <b>excludes</b> taxe foncière and ERP/DPE capex. Non-resident rates early 2026 run ~3.5–4.25%.</p>
+<h2 style="margin-top:18px">Rules for foreign buyers</h2>
       <p class="lede">You can absolutely buy — there's no restriction on foreigners owning French property. The friction is all in the financing, and two of these hit you specifically.</p>
       <div class="card"><div class="h"><h3>US citizens &amp; FATCA</h3><span class="badge warn">Hits you</span></div><p>Mortgages are doable, but FATCA reporting means only <b>certain banks</b> lend to US persons — French institutions must report US-person accounts, which deters some lenders. The fix is a broker who knows the FATCA-friendly banks; don't apply scattershot.</p></div>
       <div class="card"><div class="h"><h3>Age &amp; insurance</h3><span class="badge warn">Hits you</span></div><p>Retirees are eligible, but the loan typically must be <b>repaid by ~75–80</b>, and the mandatory mortgage life insurance (assurance emprunteur) gets expensive or restricted with age and health — usually the real limiter. It tends to shorten your term and push you toward a bigger deposit or cash.</p></div>
@@ -218,5 +269,342 @@
     </section>
   </main>
 </div>
+<script>
+const C={
+  nice:[43.70,7.27],club:[43.752,7.421],ventimiglia:[43.79,7.61],
+  toulon:[43.12,5.93],cannes:[43.55,7.02],marseille:[43.30,5.37],aix:[43.53,5.45],
+  avignon:[43.95,4.81],valence:[44.93,4.89],lyon:[45.76,4.84],
+  nimes:[43.84,4.36],montpellier:[43.61,3.88],beziers:[43.34,3.22],narbonne:[43.18,3.00],
+  perpignan:[42.70,2.90],carcassonne:[43.21,2.35],toulouse:[43.60,1.44],
+  agen:[44.20,0.62],bordeaux:[44.84,-0.58],dax:[43.70,-1.05],bayonne:[43.49,-1.48],pau:[43.30,-0.37],tarbes:[43.23,0.07],
+  angouleme:[45.65,0.16],poitiers:[46.58,0.34],tours:[47.39,0.69],
+  paris:[48.85,2.35],orleans:[47.90,1.90],bourges:[47.08,2.40],
+  lemans:[48.00,0.20],laval:[48.07,-0.77],angers:[47.47,-0.55],nantes:[47.22,-1.55],
+  rennes:[48.11,-1.68],stbrieuc:[48.51,-2.77],brest:[48.39,-4.49],vannes:[47.66,-2.76],lorient:[47.75,-3.37],quimper:[48.00,-4.10],
+  caen:[49.18,-0.37],cherbourg:[49.64,-1.62],avranches:[48.69,-1.36],rouen:[49.44,1.10],lehavre:[49.49,0.11],
+  lille:[50.63,3.06],calais:[50.95,1.86],laon:[49.56,3.62],
+  reims:[49.26,4.03],metz:[49.12,6.18],nancy:[48.69,6.18],strasbourg:[48.57,7.75],mulhouse:[47.75,7.34],belfort:[47.64,6.86],besancon:[47.24,6.02],dijon:[47.32,5.04],
+  nevers:[46.99,3.16],clermont:[45.78,3.08],limoges:[45.83,1.26],brive:[45.16,1.53],cahors:[44.45,1.44],
+  perigueux:[45.18,0.72],bergerac:[44.85,0.48],
+  grenoble:[45.19,5.72],chambery:[45.56,5.92],annecy:[45.90,6.13]
+};
+
+/* approx one-way train hours from Nice/Monaco — drives the green->red colour */
+const HRS={
+  nice:0,club:0,ventimiglia:0.5,cannes:0.5,toulon:1.7,marseille:2.5,aix:2.8,
+  avignon:3.5,valence:4.1,lyon:4.5,nimes:3.8,montpellier:4.6,beziers:5.0,narbonne:5.3,
+  perpignan:6.0,carcassonne:6.0,toulouse:6.8,agen:7.7,bordeaux:9.4,dax:9.6,bayonne:9.9,pau:8.6,tarbes:8.4,
+  angouleme:8.4,poitiers:8.2,tours:7.9,paris:5.7,orleans:7.0,bourges:7.6,
+  lemans:7.4,laval:7.7,angers:7.8,nantes:8.6,rennes:8.5,stbrieuc:9.3,brest:9.6,vannes:9.5,lorient:9.1,quimper:9.7,
+  caen:8.2,cherbourg:9.3,avranches:9.0,rouen:7.6,lehavre:8.3,lille:7.5,calais:8.4,laon:7.7,
+  reims:7.0,metz:7.9,nancy:7.7,strasbourg:7.9,mulhouse:6.9,belfort:6.7,besancon:6.4,dijon:6.2,
+  nevers:7.6,clermont:8.0,limoges:8.2,brive:8.9,cahors:7.6,perigueux:9.3,bergerac:11.0,
+  grenoble:6.0,chambery:6.3,annecy:7.0
+};
+
+/* the national network — every segment coloured by time */
+const network=[
+  ['nice','cannes','toulon','marseille','aix','avignon','valence','lyon','dijon','paris'],
+  ['nice','ventimiglia'],
+  ['marseille','nimes','montpellier','beziers','narbonne','perpignan'],
+  ['narbonne','carcassonne','toulouse','agen','bordeaux'],
+  ['paris','orleans','tours','poitiers','angouleme','bordeaux'],
+  ['bordeaux','dax','bayonne'],
+  ['bordeaux','agen','toulouse'],
+  ['toulouse','tarbes','pau','dax'],
+  ['paris','lemans','laval','rennes'],
+  ['rennes','stbrieuc','brest'],
+  ['rennes','vannes','lorient','quimper'],
+  ['lemans','angers','nantes'],
+  ['nantes','rennes'],
+  ['paris','rouen','lehavre'],
+  ['paris','caen','cherbourg'],
+  ['caen','avranches','rennes'],
+  ['paris','lille','calais'],
+  ['paris','reims','metz','strasbourg'],
+  ['reims','laon'],
+  ['strasbourg','mulhouse','belfort','besancon','dijon','lyon'],
+  ['paris','nevers','clermont'],
+  ['paris','orleans','bourges','limoges','brive','cahors','toulouse'],
+  ['bordeaux','perigueux','brive'],
+  ['lyon','chambery','annecy'],
+  ['lyon','grenoble'],
+  ['bordeaux','bergerac']
+];
+
+const regions=[
+  {label:"A",name:"Riviera base (the club)",cat:"club",pt:C.club,
+   rows:[["Role","Rent here, seasonal"],["Buy?","No — rent small"],["Why","Tennis + Côte d'Azur"]]},
+  {label:"1",name:"Occitanie (Tarn)",cat:"region",hrs:6.8,xfer:1,xferTxt:"1 (via Marseille)",pt:C.toulouse,
+   rows:[["Price","€300–850K"],["Train","~6h48 to Toulouse"],["Tarn","+1 chg, ~8h to châteaux"],["Verdict","★ Sunniest pick"]]},
+  {label:"2",name:"Loire Valley",cat:"region",hrs:7.9,xfer:1,pt:C.tours,
+   rows:[["Price","€430–795K"],["Train","~7h45–8h30 via Paris"],["B&B","Excellent"],["Verdict","Tourism + ok rail"]]},
+  {label:"3",name:"Dordogne / Périgord",cat:"region",hrs:11,xfer:2,pt:C.bergerac,
+   rows:[["Price","€178–780K"],["Train","~11h+ via Bordeaux"],["B&B","Excellent"],["Verdict","Best B&B, worst rail"]]},
+  {label:"4",name:"Hauts-de-France",cat:"region",hrs:7.7,xfer:1,pt:C.laon,
+   rows:[["Price","€178–718K"],["Train","~7.5h via Paris"],["B&B","Modest"],["Verdict","Cheap, grey"]]},
+  {label:"5",name:"Brittany (Morbihan)",cat:"region",hrs:9.5,xfer:1,pt:C.vannes,
+   rows:[["Price","€67–402K"],["Train","~9.5h via Paris"],["B&B","Good (coast)"],["Verdict","Cheapest, wet"]]},
+  {label:"6",name:"Normandy",cat:"region",hrs:9,xfer:2,pt:C.avranches,
+   rows:[["Price","from ~€180K"],["Train","~9h via Paris"],["B&B","Good"],["Verdict","Charming, far"]]}
+];
+
+/* real château/maison-de-maître listings in the Tarn (Occitanie) — verified ParuVendu, June 2026 */
+const candidates=[
+  {commune:"Saint-Paul-Cap-de-Joux (81)",price:"€546,000",size:"431 m² · 13 rooms · 5,691 m²",
+   note:"House + two renovated 3★ gîtes + historic outbuildings — B&B-ready",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288430438A1KIVHPR000",
+   station:"Saint-Paul-Cap-de-Joux–Damiatte",min:10,hrs:8.0,lat:43.642,lng:1.978},
+  {commune:"Rivières (81)",price:"€799,000",size:"374 m² · 10 rooms · 2.9 ha",
+   note:"17th-c chartreuse, pool, pigeonnier, parkland",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283633850A1KIVHPR000",
+   station:"Gaillac",min:6,hrs:7.9,lat:43.952,lng:1.950},
+  {commune:"Gaillac (81)",price:"€699,000",size:"235 m² + dépendances · 22 ha",
+   note:"Maison de maître + outbuildings, wine country",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1282317855A1KIVHPR000",
+   station:"Gaillac",min:7,hrs:7.9,lat:43.901,lng:1.898},
+  {commune:"Rabastens (81)",price:"€437,000",size:"295 m² · 8 rooms · 5,680 m²",
+   note:"Maison de maître + 120 m² dépendance + garage; station in town",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283550246A1KIVHPR000",
+   station:"Rabastens-Couffouleng",min:5,hrs:7.6,lat:43.824,lng:1.728},
+  {commune:"Réalmont (81)",price:"€320,000",size:"328 m² · 10 rooms · >1 ha park",
+   note:"Maison de maître + dépendances, between Albi & Castres — budget pick",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283124483A1KIVHPR000",
+   station:"Albi-Ville",min:20,hrs:8.5,lat:43.778,lng:2.190},
+  {commune:"Lavaur (81)",price:"€300,000",size:"302 m² · 6 bd · 5,500 m²",
+   note:"Maison de maître + grange, strong conversion potential",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290196619A1KIVHPR000",
+   station:"Lavaur",min:8,hrs:7.6,lat:43.699,lng:1.823},
+  {commune:"Chanos-Curson (26)",area:"Drôme · Rhône TGV line",price:"€750,000",size:"400 m² · 11 rooms · 1.15 ha",
+   note:"Restored 19th-c bastide, Drôme des collines — fastest rail of all the candidates",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1287661626A1KIVHPR000",
+   station:"Valence TGV",min:15,hrs:4.2,lat:45.066,lng:4.921},
+  {commune:"Mirabel-et-Blacons (26)",area:"Drôme · Rhône line",price:"€480,000",size:"377 m² · 8 rooms · 1,400 m²",
+   note:"1850 former coaching inn (relais de poste), strong B&B conversion",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290828688A1KIVHPR000",
+   station:"Crest",min:10,hrs:5.4,lat:44.733,lng:5.073},
+  {commune:"Chalon-sur-Saône / Saint-Marcel (71)",area:"Burgundy · TGV spine",price:"€558,000",size:"278 m² · 8 rooms · 3,300 m²",
+   note:"Longère with landscaped park, on the Paris–Lyon TGV spine",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1286158024A1KIVHPR000",
+   station:"Chalon-sur-Saône TGV",min:8,hrs:6.2,lat:46.787,lng:4.873},
+  {commune:"Verdun-sur-le-Doubs (71)",area:"Burgundy",price:"€920,000",size:"460 m² · 14 rooms · 9 bd",
+   note:"Turnkey chambres d'hôtes / hôtel, ready to operate — ERP already done",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1284454175A1KIVHPR000",
+   station:"Chagny / Chalon",min:20,hrs:6.3,lat:46.899,lng:5.022},
+  {commune:"Étang-sur-Arroux (71)",area:"Burgundy · Morvan edge",price:"€321,000",size:"317 m² · 10 rooms · 3 dwellings",
+   note:"Three independent units, gîte-ready — budget pick",
+   url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288336374A1KIVHPR000",
+   station:"Étang-sur-Arroux (TER)",min:5,hrs:7.5,lat:46.864,lng:4.191}
+];
+
+function gradeColor(hrs){
+  const t=Math.max(0,Math.min(1,(hrs-2)/(10-2)));  /* green starts at 2h */
+  const hue=130*(1-t);
+  return `hsl(${hue.toFixed(0)},62%,44%)`;
+}
+
+/* ---- offline fallback map: inline SVG, no external library or tiles ----
+   Used when the in-app viewer blocks the external Leaflet script. */
+const FR=[[2.55,51.05],[4.23,50.28],[6.12,49.46],[8.13,48.95],[7.59,47.59],[6.86,47.0],[6.02,46.28],[6.8,45.9],[7.0,45.2],[6.86,44.36],[7.66,43.99],[7.44,43.75],[6.37,43.16],[5.35,43.31],[4.05,43.55],[3.05,42.47],[2.0,42.35],[0.66,42.69],[-1.39,43.28],[-1.25,44.5],[-1.06,45.57],[-1.2,46.31],[-2.16,47.0],[-2.55,47.51],[-4.78,48.04],[-4.27,48.68],[-1.85,48.62],[-1.61,49.72],[0.18,49.7],[1.56,50.74],[2.55,51.05]];
+const PB={lng0:-5.4,lng1:8.4,lat0:42.0,lat1:51.3,W:1000,H:1090};
+function prj(lat,lng){return [ (lng-PB.lng0)/(PB.lng1-PB.lng0)*PB.W, (PB.lat1-lat)/(PB.lat1-PB.lat0)*PB.H ];}
+function renderStaticMap(el){
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const d='M'+FR.map(p=>{const q=prj(p[1],p[0]);return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' L')+' Z';
+  let lines='';
+  network.forEach(route=>{
+    for(let i=0;i<route.length-1;i++){
+      const A=prj(C[route[i]][0],C[route[i]][1]), B=prj(C[route[i+1]][0],C[route[i+1]][1]);
+      const col=gradeColor((HRS[route[i]]+HRS[route[i+1]])/2);
+      lines+=`<line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" stroke="${col}" stroke-width="3.4" stroke-linecap="round"/>`;
+    }
+  });
+  const info=[];
+  let pins='';
+  regions.forEach(r=>{
+    const q=prj(r.pt[0],r.pt[1]), isClub=r.cat==='club';
+    const col=isClub?'#c39438':gradeColor(r.hrs), rad=isClub?17:14, i=info.length;
+    info.push({kind:isClub?'club':'region',name:r.name,rows:r.rows,xfer:isClub?'':(r.xferTxt||r.xfer)});
+    pins+=`<g class="mk" data-i="${i}" style="cursor:pointer">`+
+      `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${rad+8}" fill="rgba(0,0,0,0)"/>`+
+      `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${rad}" fill="${col}" stroke="#fff" stroke-width="2.6"/>`+
+      `<text x="${q[0].toFixed(1)}" y="${(q[1]+5).toFixed(1)}" text-anchor="middle" font-size="15" font-weight="700" fill="#fff" font-family="Hanken Grotesk,sans-serif">${esc(r.label)}</text></g>`;
+  });
+  let cands='';
+  candidates.forEach(c=>{
+    const q=prj(c.lat,c.lng), col=gradeColor(c.hrs), i=info.length;
+    info.push({kind:'cand',commune:c.commune,area:c.area||'Tarn · Occitanie',price:c.price,size:c.size,note:c.note,station:c.station,min:c.min,hrs:c.hrs,url:c.url});
+    cands+=`<g class="mk" data-i="${i}" style="cursor:pointer">`+
+      `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="15" fill="rgba(0,0,0,0)"/>`+
+      `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="7.5" fill="${col}" stroke="#fff" stroke-width="2"/></g>`;
+  });
+  el.innerHTML=`<div style="position:absolute;inset:0;overflow:auto;background:#aadaff;-webkit-overflow-scrolling:touch">`+
+    `<div style="padding:8px 12px;font:600 11px/1.45 'Hanken Grotesk',system-ui,sans-serif;color:#0e4257;background:rgba(251,247,238,.94);border-bottom:1px solid rgba(43,39,34,.14)">Simplified offline map — the live, draggable version needs a regular browser. Lines &amp; dots are coloured by rail time from Monaco; <b>tap any pin or dot</b> for details.</div>`+
+    `<svg viewBox="0 0 ${PB.W} ${PB.H}" width="100%" style="display:block" xmlns="http://www.w3.org/2000/svg">`+
+    `<rect width="${PB.W}" height="${PB.H}" fill="#aadaff"/>`+
+    `<path d="${d}" fill="#fbf7ee" stroke="#cbb994" stroke-width="2"/>`+
+    lines+pins+cands+`</svg></div>`+
+    `<div id="mapinfo" style="display:none;position:absolute;left:10px;right:10px;bottom:10px;z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 13px;box-shadow:0 10px 30px rgba(20,15,8,.28);font-family:'Hanken Grotesk',system-ui,sans-serif"></div>`;
+  const panel=el.querySelector('#mapinfo');
+  const row=(k,v)=>`<div style="font-size:12px;margin:3px 0;display:flex;gap:7px"><b style="min-width:64px;color:var(--ink)">${esc(k)}</b><span style="color:#4a443c">${esc(v)}</span></div>`;
+  function show(o){
+    let h=`<button aria-label="Close" style="float:right;border:none;background:transparent;font-size:20px;line-height:.8;cursor:pointer;color:var(--muted)">&times;</button>`;
+    if(o.kind==='cand'){
+      h+=`<div style="font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:#9a7320">Château candidate · ${esc(o.area)}</div>`+
+        `<h3 style="font-family:Fraunces,serif;font-weight:600;font-size:15px;margin:3px 0 7px">${esc(o.commune)}</h3>`+
+        row('Price',o.price)+row('Size',o.size)+row('Rail',`~${o.hrs}h from Nice`)+row('Station',`${o.station} · ${o.min}min`)+row('Note',o.note)+
+        `<a href="${esc(o.url)}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;background:var(--clay);color:var(--paper);font-weight:700;font-size:12.5px;padding:8px 10px;border-radius:9px;margin-top:9px">View listing →</a>`;
+    } else {
+      h+=`<div style="font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--clay-deep)">${o.kind==='club'?'Your base':'Cheap-château region'}</div>`+
+        `<h3 style="font-family:Fraunces,serif;font-weight:600;font-size:15px;margin:3px 0 7px">${esc(o.name)}</h3>`+
+        o.rows.map(x=>row(x[0],x[1])).join('')+(o.xfer?row('Changes',o.xfer+' from Monaco'):'');
+    }
+    panel.innerHTML=h; panel.style.display='block';
+    const legend=document.querySelector('#tab-map .maplegend'); if(legend) legend.style.visibility='hidden';
+    panel.querySelector('button').addEventListener('click',()=>{
+      panel.style.display='none';
+      if(legend) legend.style.visibility='visible';
+    });
+  }
+  el.querySelectorAll('.mk').forEach(g=>g.addEventListener('click',()=>show(info[+g.dataset.i])));
+}
+
+
+/* ===== Château finder — live search / filter / map ===== */
+const club=C.club;
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const eur=n=>'€'+(n>=1e6?(n/1e6).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'M':Math.round(n/1000)+'K');
+
+/* curated, charm-screened dataset (verified ParuVendu, June 2026). year=null → era unknown */
+const LIST=[
+ {id:1,commune:"Saint-Paul-Cap-de-Joux",dept:"81",region:"Occitanie (Tarn)",price:546000,m2:431,rooms:13,bd:6,land_ha:0.57,year:null,typ:"demeure",typLabel:"Demeure + 2 gîtes",charming:true,feats:["Historic outbuildings","Two 3★ gîtes","B&B-ready"],bnb:true,erp:false,station:"Saint-Paul–Damiatte",carMin:10,hrs:8.0,changes:2,lat:43.642,lng:1.978,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288430438A1KIVHPR000"},
+ {id:2,commune:"Rivières",dept:"81",region:"Occitanie (Tarn)",price:799000,m2:374,rooms:10,bd:5,land_ha:2.9,year:1650,typ:"chartreuse",typLabel:"17th-c chartreuse",charming:true,feats:["Pigeonnier","Parkland","Pool","Period stone"],bnb:false,erp:false,station:"Gaillac",carMin:6,hrs:7.9,changes:2,lat:43.952,lng:1.950,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283633850A1KIVHPR000"},
+ {id:3,commune:"Gaillac",dept:"81",region:"Occitanie (Tarn)",price:699000,m2:235,rooms:8,bd:4,land_ha:22,year:null,typ:"maison_maitre",typLabel:"Maison de maître",charming:true,feats:["Outbuildings","22 ha wine country"],bnb:false,erp:false,station:"Gaillac",carMin:7,hrs:7.9,changes:2,lat:43.901,lng:1.898,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1282317855A1KIVHPR000"},
+ {id:4,commune:"Rabastens",dept:"81",region:"Occitanie (Tarn)",price:437000,m2:295,rooms:8,bd:4,land_ha:0.57,year:null,typ:"maison_maitre",typLabel:"Maison de maître",charming:true,feats:["120 m² dépendance","Garage","Station in town"],bnb:false,erp:false,station:"Rabastens-Couffouleng",carMin:5,hrs:7.6,changes:2,lat:43.824,lng:1.728,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283550246A1KIVHPR000"},
+ {id:5,commune:"Réalmont",dept:"81",region:"Occitanie (Tarn)",price:320000,m2:328,rooms:10,bd:5,land_ha:1.0,year:null,typ:"maison_maitre",typLabel:"Maison de maître",charming:true,feats:["Dépendances","Parkland"],bnb:false,erp:false,station:"Albi-Ville",carMin:20,hrs:8.5,changes:2,lat:43.778,lng:2.190,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1283124483A1KIVHPR000"},
+ {id:6,commune:"Lavaur",dept:"81",region:"Occitanie (Tarn)",price:300000,m2:302,rooms:7,bd:6,land_ha:0.55,year:null,typ:"maison_maitre",typLabel:"Maison de maître",charming:true,feats:["Grange","Conversion potential"],bnb:false,erp:false,station:"Lavaur",carMin:8,hrs:7.6,changes:2,lat:43.699,lng:1.823,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290196619A1KIVHPR000"},
+ {id:7,commune:"Chanos-Curson",dept:"26",region:"Drôme",price:750000,m2:400,rooms:11,bd:5,land_ha:1.15,year:1850,typ:"bastide",typLabel:"19th-c bastide",charming:true,feats:["Restored","Drôme des collines","Fastest rail"],bnb:false,erp:false,station:"Valence TGV",carMin:15,hrs:4.2,changes:1,lat:45.066,lng:4.921,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1287661626A1KIVHPR000"},
+ {id:8,commune:"Mirabel-et-Blacons",dept:"26",region:"Drôme",price:480000,m2:377,rooms:8,bd:4,land_ha:0.14,year:1850,typ:"relais",typLabel:"1850 relais de poste",charming:true,feats:["Former coaching inn","B&B conversion"],bnb:false,erp:false,station:"Crest",carMin:10,hrs:5.4,changes:1,lat:44.733,lng:5.073,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1290828688A1KIVHPR000"},
+ {id:9,commune:"Chalon-sur-Saône / Saint-Marcel",dept:"71",region:"Burgundy",price:558000,m2:278,rooms:8,bd:4,land_ha:0.33,year:null,typ:"longere",typLabel:"Longère + park",charming:true,feats:["Landscaped park","On TGV spine"],bnb:false,erp:false,station:"Chalon-sur-Saône TGV",carMin:8,hrs:6.2,changes:1,lat:46.787,lng:4.873,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1286158024A1KIVHPR000"},
+ {id:10,commune:"Verdun-sur-le-Doubs",dept:"71",region:"Burgundy",price:920000,m2:460,rooms:14,bd:9,land_ha:0.2,year:null,typ:"demeure",typLabel:"Turnkey chambres d'hôtes",charming:true,feats:["Turnkey B&B","ERP already done","9 bedrooms"],bnb:true,erp:true,station:"Chagny / Chalon",carMin:20,hrs:6.3,changes:1,lat:46.899,lng:5.022,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1284454175A1KIVHPR000"},
+ {id:11,commune:"Étang-sur-Arroux",dept:"71",region:"Burgundy",price:321000,m2:317,rooms:10,bd:5,land_ha:0.3,year:null,typ:"maison",typLabel:"House · 3 units",charming:false,feats:["Three independent units","Gîte-ready"],bnb:false,erp:false,station:"Étang-sur-Arroux (TER)",carMin:5,hrs:7.5,changes:2,lat:46.864,lng:4.191,url:"https://www.paruvendu.fr/immobilier/vente/propriete-chateau/1288336374A1KIVHPR000"}
+];
+
+/* ----- charm scoring (era + period features + land), each a 0–100 subscore ----- */
+const taste={era:true,char:true,land:true};
+const eraScore=d=>{ if(d.year){ if(d.year<1800)return 100; if(d.year<1900)return 80; if(d.year<1946)return 45; return 15;} return 60; };
+const charScore=d=>Math.min(100,(d.charming?70:40)+(d.feats?d.feats.length:0)*8);
+const landScore=d=>{ const h=d.land_ha||0; if(h>=5)return 100; if(h>=2)return 80; if(h>=1)return 60; if(h>=0.3)return 40; return 20; };
+function charm(d){ const a=[]; if(taste.era)a.push(eraScore(d)); if(taste.char)a.push(charScore(d)); if(taste.land)a.push(landScore(d)); if(!a.length)return 100; return Math.round(a.reduce((x,y)=>x+y,0)/a.length); }
+
+/* ----- interactive SVG map (no Leaflet) ----- */
+let sel=null;
+function initMap(){
+  const el=document.getElementById('findmap'); if(!el)return;
+  const dpath='M'+FR.map(p=>{const q=prj(p[1],p[0]);return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' L')+' Z';
+  let lines='';
+  network.forEach(route=>{for(let i=0;i<route.length-1;i++){const A=prj(C[route[i]][0],C[route[i]][1]),B=prj(C[route[i+1]][0],C[route[i+1]][1]);lines+=`<line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" stroke="#d6c8ad" stroke-width="2.2" stroke-linecap="round"/>`;}});
+  const cq=prj(club[0],club[1]);
+  el.innerHTML=`<svg id="fsvg" viewBox="0 0 ${PB.W} ${PB.H}" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><rect width="${PB.W}" height="${PB.H}" fill="#aadaff"/><path d="${dpath}" fill="#fbf7ee" stroke="#cbb994" stroke-width="2"/><g id="netlayer">${lines}</g><g id="pinlayer"></g><g id="clublayer"><circle cx="${cq[0].toFixed(1)}" cy="${cq[1].toFixed(1)}" r="13" fill="#c39438" stroke="#fff" stroke-width="2.6"/><text x="${cq[0].toFixed(1)}" y="${(cq[1]+5).toFixed(1)}" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" font-family="Hanken Grotesk">A</text></g></svg>`;
+  el.querySelector('#fsvg').addEventListener('click',e=>{const g=e.target.closest('.fpin'); if(!g)return; sel=+g.dataset.id; render(); const card=document.getElementById('card-'+sel); if(card) card.scrollIntoView({behavior:'smooth',block:'center'});});
+}
+function renderPins(rows){
+  const layer=document.getElementById('pinlayer'); if(!layer)return;
+  layer.innerHTML=rows.map(({d})=>{const q=prj(d.lat,d.lng),col=gradeColor(d.hrs),r=d.id===sel?11:8;return `<g class="fpin" data-id="${d.id}" style="cursor:pointer"><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${r+7}" fill="rgba(0,0,0,0)"/><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${r}" fill="${col}" stroke="#fff" stroke-width="${d.id===sel?3:2}"/></g>`;}).join('');
+}
+
+/* ----- filtering ----- */
+function val(id){return document.getElementById(id).value;}
+function applyFilters(){
+  const q=val('f-q').trim().toLowerCase();
+  const period=document.getElementById('f-period').checked;
+  const thresh=+val('f-thresh'), maxP=+val('f-price'), maxH=+val('f-hrs');
+  const region=val('f-region'), sort=val('f-sort'), bnb=document.getElementById('f-bnb').checked;
+  taste.era=document.getElementById('f-era').checked;
+  taste.char=document.getElementById('f-char').checked;
+  taste.land=document.getElementById('f-land').checked;
+  let rows=LIST.map(d=>({d,score:charm(d)}));
+  rows=rows.filter(({d,score})=>{
+    if(q){const hay=(d.commune+' '+d.dept+' '+d.region+' '+d.typLabel+' '+(d.feats||[]).join(' ')).toLowerCase(); if(!hay.includes(q))return false;}
+    if(d.price>maxP)return false;
+    if(d.hrs>maxH)return false;
+    if(region!=='all'&&d.region!==region)return false;
+    if(bnb&&!d.bnb)return false;
+    if(period&&score<thresh)return false;
+    return true;
+  });
+  rows.sort((a,b)=> sort==='price'?a.d.price-b.d.price : sort==='charm'?b.score-a.score : a.d.hrs-b.d.hrs);
+  return rows;
+}
+function renderList(rows){
+  const list=document.getElementById('f-list');
+  if(!rows.length){list.innerHTML='<p class="foot">No matches — loosen a filter or lower the charm threshold.</p>';return;}
+  list.innerHTML=rows.map(({d,score})=>{
+    const col=gradeColor(d.hrs);
+    const chips=(d.feats||[]).slice(0,4).map(f=>`<span class="chip">${esc(f)}</span>`).join('');
+    return `<div class="fcard${d.id===sel?' sel':''}" id="card-${d.id}">`+
+      `<div class="fhead"><h3>${esc(d.commune)}</h3><span class="charmbadge" title="Charm score 0–100">♦ ${score}</span></div>`+
+      `<div class="sub">${esc(d.region)} · ${esc(d.typLabel)}${d.year?' · '+d.year:''}</div>`+
+      `<div class="frow3"><b>${eur(d.price)}</b><span class="timepill" style="background:${col}">~${d.hrs}h</span><span class="muted">${d.m2}m² · ${d.bd} bd · ${d.land_ha}ha</span></div>`+
+      `<div class="chips2">${chips}</div>`+
+      `<div class="fcardfoot"><a class="lnk" href="${esc(d.url)}" target="_blank" rel="noopener">View listing →</a><span class="muted small">🚉 ${esc(d.station)} · ${d.carMin}min · ${d.changes} chg</span></div>`+
+    `</div>`;
+  }).join('');
+}
+function render(){
+  const rows=applyFilters();
+  const period=document.getElementById('f-period').checked;
+  document.getElementById('f-count').textContent=`${rows.length} of ${LIST.length} places${period?' · period filter on':''}`;
+  document.getElementById('f-pricev').textContent=eur(+val('f-price'));
+  document.getElementById('f-hrsv').textContent=(+val('f-hrs'))+'h';
+  document.getElementById('f-threshv').textContent=val('f-thresh');
+  renderPins(rows); renderList(rows);
+}
+function wireFind(){
+  initMap();
+  ['f-q','f-period','f-thresh','f-price','f-hrs','f-region','f-sort','f-bnb','f-era','f-char','f-land'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.addEventListener('input',()=>{sel=null;render();});
+  });
+  document.getElementById('f-reset').addEventListener('click',()=>{
+    document.getElementById('f-q').value='';
+    document.getElementById('f-period').checked=true;
+    document.getElementById('f-thresh').value=60;
+    document.getElementById('f-price').value=1000000;
+    document.getElementById('f-hrs').value=12;
+    document.getElementById('f-region').value='all';
+    document.getElementById('f-sort').value='hrs';
+    document.getElementById('f-bnb').checked=false;
+    ['f-era','f-char','f-land'].forEach(i=>document.getElementById(i).checked=true);
+    sel=null; render();
+  });
+  render();
+}
+
+/* ----- live mortgage calculator ----- */
+function calc(){
+  const g=id=>document.getElementById(id);
+  if(!g('c-price'))return;
+  const price=+g('c-price').value||0, dep=+g('c-dep').value, rate=+g('c-rate').value, term=+g('c-term').value, ins=+g('c-ins').value;
+  const notf=+g('c-not').value, brok=+g('c-brok').value, up=+g('c-up').value;
+  g('v-dep').textContent=dep+'%'; g('v-rate').textContent=rate.toFixed(2)+'%'; g('v-term').textContent=term+' yr';
+  g('v-ins').textContent=ins.toFixed(2)+'%'; g('v-not').textContent=notf.toFixed(1)+'%'; g('v-brok').textContent=brok.toFixed(1)+'%'; g('v-up').textContent=up.toFixed(2)+'% / yr';
+  const loan=price*(1-dep/100), r=rate/100/12, n=term*12;
+  const mPI=r>0?loan*r/(1-Math.pow(1+r,-n)):loan/n, mIns=loan*(ins/100)/12;
+  const upfront=price*(dep/100)+price*(notf/100)+price*(brok/100), totalInt=mPI*n-loan;
+  const annualUpkeep=price*(up/100), carry=mPI+mIns+annualUpkeep/12;
+  const E=n=>'€'+Math.round(n).toLocaleString('en-US');
+  g('o-loan').textContent=E(loan); g('o-pi').textContent=E(mPI)+'/mo'; g('o-ins').textContent=E(mIns)+'/mo';
+  g('o-tot').textContent=E(mPI+mIns)+'/mo'; g('o-upk').textContent=E(annualUpkeep)+'/yr'; g('o-carry').textContent=E(carry)+'/mo';
+  g('o-up').textContent=E(upfront); g('o-int').textContent=E(totalInt);
+}
+function wireCalc(){
+  ['c-price','c-dep','c-rate','c-term','c-ins','c-not','c-brok','c-up'].forEach(id=>{const el=document.getElementById(id); if(el) el.addEventListener('input',calc);});
+  calc();
+}
+
+wireFind();
+wireCalc();
+
+</script>
 </body>
 </html>
