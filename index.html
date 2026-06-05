@@ -418,25 +418,54 @@ function renderStaticMap(el){
       lines+=`<line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" stroke="${col}" stroke-width="3.4" stroke-linecap="round"/>`;
     }
   });
+  const info=[];
   let pins='';
   regions.forEach(r=>{
     const q=prj(r.pt[0],r.pt[1]), isClub=r.cat==='club';
-    const col=isClub?'#c39438':gradeColor(r.hrs), rad=isClub?16:13;
-    pins+=`<g><title>${esc(r.name)}</title><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${rad}" fill="${col}" stroke="#fff" stroke-width="2.6"/>`+
+    const col=isClub?'#c39438':gradeColor(r.hrs), rad=isClub?17:14, i=info.length;
+    info.push({kind:isClub?'club':'region',name:r.name,rows:r.rows,xfer:isClub?'':(r.xferTxt||r.xfer)});
+    pins+=`<g class="mk" data-i="${i}" style="cursor:pointer">`+
+      `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${rad+8}" fill="rgba(0,0,0,0)"/>`+
+      `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${rad}" fill="${col}" stroke="#fff" stroke-width="2.6"/>`+
       `<text x="${q[0].toFixed(1)}" y="${(q[1]+5).toFixed(1)}" text-anchor="middle" font-size="15" font-weight="700" fill="#fff" font-family="Hanken Grotesk,sans-serif">${esc(r.label)}</text></g>`;
   });
   let cands='';
   candidates.forEach(c=>{
-    const q=prj(c.lat,c.lng), col=gradeColor(c.hrs);
-    cands+=`<a href="${esc(c.url)}" target="_blank" rel="noopener"><title>${esc(c.commune)} · ${esc(c.price)} · ~${c.hrs}h</title>`+
-      `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="7.5" fill="${col}" stroke="#fff" stroke-width="2"/></a>`;
+    const q=prj(c.lat,c.lng), col=gradeColor(c.hrs), i=info.length;
+    info.push({kind:'cand',commune:c.commune,area:c.area||'Tarn · Occitanie',price:c.price,size:c.size,note:c.note,station:c.station,min:c.min,hrs:c.hrs,url:c.url});
+    cands+=`<g class="mk" data-i="${i}" style="cursor:pointer">`+
+      `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="15" fill="rgba(0,0,0,0)"/>`+
+      `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="7.5" fill="${col}" stroke="#fff" stroke-width="2"/></g>`;
   });
   el.innerHTML=`<div style="position:absolute;inset:0;overflow:auto;background:#aadaff;-webkit-overflow-scrolling:touch">`+
-    `<div style="padding:8px 12px;font:600 11px/1.45 'Hanken Grotesk',system-ui,sans-serif;color:#0e4257;background:rgba(251,247,238,.94);border-bottom:1px solid rgba(43,39,34,.14)">Simplified offline map — the live, draggable version needs a regular browser. Lines &amp; dots are coloured by rail time from Monaco; tap a small dot to open its listing.</div>`+
+    `<div style="padding:8px 12px;font:600 11px/1.45 'Hanken Grotesk',system-ui,sans-serif;color:#0e4257;background:rgba(251,247,238,.94);border-bottom:1px solid rgba(43,39,34,.14)">Simplified offline map — the live, draggable version needs a regular browser. Lines &amp; dots are coloured by rail time from Monaco; <b>tap any pin or dot</b> for details.</div>`+
     `<svg viewBox="0 0 ${PB.W} ${PB.H}" width="100%" style="display:block" xmlns="http://www.w3.org/2000/svg">`+
     `<rect width="${PB.W}" height="${PB.H}" fill="#aadaff"/>`+
     `<path d="${d}" fill="#fbf7ee" stroke="#cbb994" stroke-width="2"/>`+
-    lines+pins+cands+`</svg></div>`;
+    lines+pins+cands+`</svg></div>`+
+    `<div id="mapinfo" style="display:none;position:absolute;left:10px;right:10px;bottom:10px;z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 13px;box-shadow:0 10px 30px rgba(20,15,8,.28);font-family:'Hanken Grotesk',system-ui,sans-serif"></div>`;
+  const panel=el.querySelector('#mapinfo');
+  const row=(k,v)=>`<div style="font-size:12px;margin:3px 0;display:flex;gap:7px"><b style="min-width:64px;color:var(--ink)">${esc(k)}</b><span style="color:#4a443c">${esc(v)}</span></div>`;
+  function show(o){
+    let h=`<button aria-label="Close" style="float:right;border:none;background:transparent;font-size:20px;line-height:.8;cursor:pointer;color:var(--muted)">&times;</button>`;
+    if(o.kind==='cand'){
+      h+=`<div style="font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:#9a7320">Château candidate · ${esc(o.area)}</div>`+
+        `<h3 style="font-family:Fraunces,serif;font-weight:600;font-size:15px;margin:3px 0 7px">${esc(o.commune)}</h3>`+
+        row('Price',o.price)+row('Size',o.size)+row('Rail',`~${o.hrs}h from Nice`)+row('Station',`${o.station} · ${o.min}min`)+row('Note',o.note)+
+        `<a href="${esc(o.url)}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;background:var(--clay);color:var(--paper);font-weight:700;font-size:12.5px;padding:8px 10px;border-radius:9px;margin-top:9px">View listing →</a>`;
+    } else {
+      h+=`<div style="font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--clay-deep)">${o.kind==='club'?'Your base':'Cheap-château region'}</div>`+
+        `<h3 style="font-family:Fraunces,serif;font-weight:600;font-size:15px;margin:3px 0 7px">${esc(o.name)}</h3>`+
+        o.rows.map(x=>row(x[0],x[1])).join('')+(o.xfer?row('Changes',o.xfer+' from Monaco'):'');
+    }
+    panel.innerHTML=h; panel.style.display='block';
+    const legend=document.querySelector('#tab-map .maplegend'); if(legend) legend.style.visibility='hidden';
+    panel.querySelector('button').addEventListener('click',()=>{
+      panel.style.display='none';
+      if(legend) legend.style.visibility='visible';
+    });
+  }
+  el.querySelectorAll('.mk').forEach(g=>g.addEventListener('click',()=>show(info[+g.dataset.i])));
 }
 
 function buildMap(){
