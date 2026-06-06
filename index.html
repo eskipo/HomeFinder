@@ -136,8 +136,15 @@
   .chip2 input{accent-color:var(--clay);}
   .resetbtn{margin-left:auto;font-family:inherit;font-size:11px;font-weight:700;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer;}
   .fcount{margin-top:9px;font-size:11px;font-weight:700;color:var(--clay-deep);letter-spacing:.02em;}
-  .findmap{height:300px;position:relative;background:#aadaff;border-bottom:1px solid var(--line);overflow:hidden;}
-  .findmap svg{display:block;}
+  .findmap{position:relative;background:#aadaff;border-bottom:1px solid var(--line);}
+  .findmap svg{display:block;width:100%;height:auto;}
+  .filterbox{margin:9px 0 0;border:1px solid var(--line);border-radius:9px;background:var(--cream);}
+  .filterbox>summary{list-style:none;cursor:pointer;padding:9px 11px;font-size:12px;font-weight:700;color:var(--clay-deep);display:flex;align-items:center;}
+  .filterbox>summary::-webkit-details-marker{display:none;}
+  .filterbox>summary::after{content:"▾";margin-left:auto;transition:transform .2s;}
+  .filterbox[open]>summary::after{transform:rotate(180deg);}
+  .filterbox .fbody{padding:10px 11px 11px;border-top:1px solid var(--line);}
+  .filterbox .fnote{margin-top:9px;}
   .flist{padding:12px 14px 40px;}
   .fcard{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:10px;box-shadow:0 2px 8px rgba(20,15,8,.04);}
   .fcard.sel{outline:2px solid var(--clay);outline-offset:1px;}
@@ -181,26 +188,31 @@
   <main>
     <section class="tab" id="tab-find"><div class="filters">
   <input id="f-q" type="search" placeholder="🔎 Search commune, area or feature…" autocomplete="off">
-  <div class="frow">
-    <label>Max price <span class="v" id="f-pricev">€1M</span><input id="f-price" type="range" min="200000" max="1000000" step="20000" value="1000000"></label>
-    <label>Max rail time <span class="v" id="f-hrsv">12h</span><input id="f-hrs" type="range" min="4" max="12" step="0.5" value="12"></label>
-    <label>Region<select id="f-region"><option value="all">All regions</option><option>Occitanie (Tarn)</option><option>Drôme</option><option>Burgundy</option></select></label>
-    <label>Sort by<select id="f-sort"><option value="hrs">Rail time</option><option value="price">Price</option><option value="charm">Charm</option></select></label>
-  </div>
-  <div class="togrow">
-    <label class="tog"><input type="checkbox" id="f-period" checked> Period character only</label>
-    <label class="tog"><input type="checkbox" id="f-bnb"> B&amp;B-ready</label>
-    <label class="tog"><input type="checkbox" id="f-verif"> Verified only</label>
-  </div>
-  <label class="threshlab">Charm threshold <span class="v" id="f-threshv">60</span><input id="f-thresh" type="range" min="0" max="100" step="5" value="60"></label>
-  <div class="chips3"><span class="chl">Charm weighs:</span>
-    <label class="chip2"><input type="checkbox" id="f-era" checked> Era</label>
-    <label class="chip2"><input type="checkbox" id="f-char" checked> Features</label>
-    <label class="chip2"><input type="checkbox" id="f-land" checked> Land</label>
-    <button id="f-reset" type="button" class="resetbtn">Reset</button>
-  </div>
+  <details class="filterbox">
+    <summary>⚙ Filters, sort &amp; charm</summary>
+    <div class="fbody">
+      <div class="frow">
+        <label>Max price <span class="v" id="f-pricev">€1M</span><input id="f-price" type="range" min="200000" max="1000000" step="20000" value="1000000"></label>
+        <label>Max rail time <span class="v" id="f-hrsv">12h</span><input id="f-hrs" type="range" min="4" max="12" step="0.5" value="12"></label>
+        <label>Region<select id="f-region"><option value="all">All regions</option></select></label>
+        <label>Sort by<select id="f-sort"><option value="hrs">Rail time</option><option value="price">Price</option><option value="charm">Charm</option></select></label>
+      </div>
+      <div class="togrow">
+        <label class="tog"><input type="checkbox" id="f-period" checked> Period character only</label>
+        <label class="tog"><input type="checkbox" id="f-bnb"> B&amp;B-ready</label>
+        <label class="tog"><input type="checkbox" id="f-verif"> Verified only</label>
+      </div>
+      <label class="threshlab">Charm threshold <span class="v" id="f-threshv">60</span><input id="f-thresh" type="range" min="0" max="100" step="5" value="60"></label>
+      <div class="chips3"><span class="chl">Charm weighs:</span>
+        <label class="chip2"><input type="checkbox" id="f-era" checked> Era</label>
+        <label class="chip2"><input type="checkbox" id="f-char" checked> Features</label>
+        <label class="chip2"><input type="checkbox" id="f-land" checked> Land</label>
+        <button id="f-reset" type="button" class="resetbtn">Reset</button>
+      </div>
+      <p class="fnote">11 listings are <b>verified</b> (hand-checked); the rest are <b>search-sourced</b> &amp; marked “unverified” with <b>est.</b> prices — confirm on the listing before acting.</p>
+    </div>
+  </details>
   <div id="f-count" class="fcount">—</div>
-  <p class="fnote">11 listings are <b>verified</b> (hand-checked); the rest are <b>search-sourced</b> &amp; marked “unverified” with <b>est.</b> prices — confirm on the listing before acting.</p>
 </div>
 <div id="findmap" class="findmap"></div>
 <div id="f-list" class="flist"></div>
