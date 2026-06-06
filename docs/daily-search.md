@@ -38,10 +38,16 @@ committed straight to the working branch. Never overwrite or edit verified data.
    ```
    awk '/<script>/{f=1;next} /<\/script>/{f=0} f' index.html > /tmp/full.js && node --check /tmp/full.js
    ```
-9. **If new listings were added**: commit straight to `claude/chateau-train-riviera-VYitI`
-   with message `Daily listing search — <date>` whose body lists each addition (commune,
-   price, region, why it passed), then push the branch.
-   **If nothing new**: do not commit; end the run noting "no new listings today".
+9. **If new listings were added**: commit with message `Daily listing search — <date>`
+   (body lists each addition: commune, price, region, why it passed), then publish so
+   Cloudflare redeploys — it builds from **`main`**:
+   ```
+   git push origin claude/chateau-train-riviera-VYitI
+   git push origin HEAD:main
+   ```
+   Pushing `main` requires **Allow unrestricted branch pushes** enabled on the routine
+   (main is not a `claude/`-prefixed branch). **If nothing new**: do not commit; end the
+   run noting "no new listings today".
 
 ## Sources
 The full, categorized brokerage & portal list lives in **`docs/sources.md`** — query a
