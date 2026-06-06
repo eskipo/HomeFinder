@@ -39,15 +39,16 @@ committed straight to the working branch. Never overwrite or edit verified data.
    awk '/<script>/{f=1;next} /<\/script>/{f=0} f' index.html > /tmp/full.js && node --check /tmp/full.js
    ```
 9. **If new listings were added**: commit with message `Daily listing search — <date>`
-   (body lists each addition: commune, price, region, why it passed), then publish so
-   Cloudflare redeploys — it builds from **`main`**:
-   ```
-   git push origin claude/chateau-train-riviera-VYitI
-   git push origin HEAD:main
-   ```
-   Pushing `main` requires **Allow unrestricted branch pushes** enabled on the routine
-   (main is not a `claude/`-prefixed branch). **If nothing new**: do not commit; end the
-   run noting "no new listings today".
+   (body lists each addition: commune, price, region, why it passed). Push the **dev
+   branch** `claude/chateau-train-riviera-VYitI` — Cloudflare builds a **preview** from it.
+   Then open a **PR into `main`** titled `Daily listing search — <date>`. Merging the PR is
+   what promotes the day's finds to **production** (Cloudflare deploys `main`), so unverified
+   finds sit on the preview URL until a human reviews and merges.
+   **If nothing new**: do not commit; end the run noting "no new listings today".
+
+   > Branch/deploy model: `main` = default + production (never hand-edited). Build on the
+   > dev branch (preview), merge to `main` to release. No "unrestricted branch pushes"
+   > needed — the routine only pushes its `claude/` branch and opens a PR.
 
 ## Sources
 The full, categorized brokerage & portal list lives in **`docs/sources.md`** — query a
