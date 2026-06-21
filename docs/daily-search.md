@@ -9,9 +9,13 @@ rail-reachable corridors and add them to the dataset as **unverified** entries,
 committed straight to the working branch. Never overwrite or edit verified data.
 
 ## Steps each run
-1. **Work on the default branch.** `claude/chateau-train-riviera-VYitI` is the repo's
-   default branch and holds the app, so the routine clones it directly — no checkout
-   or dated branch needed. Pull latest before editing.
+1. **Branch for the run.** The routine clones the repo (default branch `main`). Make a
+   dated run branch off `main` — routines may push `claude/`-prefixed branches without
+   extra permission:
+   ```
+   git checkout main && git pull
+   git checkout -b claude/daily-search-$(date +%F)
+   ```
 2. **Read the current dataset.** Parse the `const LIST=[...]` array in `index.html`.
    Note the highest `id` and the existing `{commune, price}` pairs.
 3. **Search** (use the WebSearch tool) across these corridors, newest listings first:
@@ -39,15 +43,17 @@ committed straight to the working branch. Never overwrite or edit verified data.
    awk '/<script>/{f=1;next} /<\/script>/{f=0} f' index.html > /tmp/full.js && node --check /tmp/full.js
    ```
 9. **If new listings were added**: commit with message `Daily listing search — <date>`
-   (body lists each addition: commune, price, region, why it passed), then publish so
-   Cloudflare redeploys — it builds from **`main`**:
-   ```
-   git push origin claude/chateau-train-riviera-VYitI
-   git push origin HEAD:main
-   ```
-   Pushing `main` requires **Allow unrestricted branch pushes** enabled on the routine
-   (main is not a `claude/`-prefixed branch). **If nothing new**: do not commit; end the
-   run noting "no new listings today".
+   (body lists each addition: commune, price, region, why it passed). Push the
+   `claude/daily-search-<date>` branch — Cloudflare builds a **preview** from it. Then open
+   a **PR into `main`** titled `Daily listing search — <date>`. Merging the PR is what
+   promotes the day's finds to **production** (Cloudflare deploys `main`), so unverified
+   finds sit on the preview URL until a human reviews and merges.
+   **If nothing new**: do not commit; end the run noting "no new listings today".
+
+   > Branch/deploy model: `main` = default + production (never hand-edited). Humans work on
+   > `dev`; the routine uses dated `claude/daily-search-*` branches. Both get a Cloudflare
+   > preview; merging a PR into `main` releases to production. No "unrestricted branch
+   > pushes" permission needed — the routine only pushes `claude/`-prefixed branches.
 
 ## Sources
 The full, categorized brokerage & portal list lives in **`docs/sources.md`** — query a
